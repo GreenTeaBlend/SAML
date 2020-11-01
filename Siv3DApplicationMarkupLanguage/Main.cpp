@@ -24,12 +24,16 @@ void Main()
 
 	TextEditState text{};
 
+	String xml =
+		String(U"<Button/>\n") +
+		String(U"<TextBox Position=\"(100, 400)\"/>");
 
 	String filePath = String(FileSystem::TemporaryDirectoryPath() + U"test.txt");
 	{
-		std::ofstream strm;
-		strm.open(filePath.narrow());
-		strm.close();
+		std::ofstream ofs;
+		ofs.open(filePath.narrow());
+		ofs << xml.narrow();
+		ofs.close();
 	}
 	Process::Spawn(U"C:\\WINDOWS\\system32\\notepad.exe", filePath);
 

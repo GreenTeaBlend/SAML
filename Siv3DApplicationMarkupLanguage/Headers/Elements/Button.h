@@ -1,16 +1,16 @@
 #pragma once
 #include <Siv3D.hpp>
-#include "UIElement.h"
+#include "RectElement.h"
 
 namespace s3d::SamlUI
 {
-    class Button : UIElement
+    class Button : RectElement
     {
-        Vec2 m_position;
-
-        Vec2 m_size;
-
+        String m_text;
     public:
+
+        const String& getText() const { return m_text; }
+        void setText(const String& text) { m_text = text; }
 
         Button();
 

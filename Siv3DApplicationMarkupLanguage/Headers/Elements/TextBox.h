@@ -1,15 +1,11 @@
 #pragma once
 #include <Siv3D.hpp>
-#include "UIElement.h"
+#include "RectElement.h"
 
 namespace s3d::SamlUI
 {
-    class TextBox : UIElement
+    class TextBox : RectElement
     {
-        Vec2 m_position;
-
-        Vec2 m_size;
-
     public:
 
         TextBox();
