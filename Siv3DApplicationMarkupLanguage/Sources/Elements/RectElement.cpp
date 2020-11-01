@@ -10,30 +10,15 @@ RectElement::RectElement() :
 
 }
 
-void RectElement::SetProperty(const String& name, const String& value)
-{
-    if (name == U"Position") {
-        m_position = Parse<Vec2>(value);
-        return;
-    }
-
-    if (name == U"Size") {
-        m_size = Parse<Vec2>(value);
-        return;
-    }
-
-    UIElement::SetProperty(name, value);
-}
-
 void RectElement::enumratePropertyData(HashTable<String, PropertySetter>* datas)
 {
     datas->insert(std::make_pair(U"Position",
-        [&](UIElement* elm, const String& name, const String& value) {
+        [&](UIElement* elm, const String& value) {
             ((RectElement*)elm)->m_position = Parse<Vec2>(value);
         }));
 
     datas->insert(std::make_pair(U"Size",
-        [&](UIElement* elm, const String& name, const String& value) {
+        [&](UIElement* elm, const String& value) {
             ((RectElement*)elm)->m_size = Parse<Vec2>(value);
         }));
 

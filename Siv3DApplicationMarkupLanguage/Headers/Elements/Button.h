@@ -15,8 +15,6 @@ namespace s3d::SamlUI
 
         Button();
 
-        virtual void SetProperty(const String& name, const String& value);
-
         virtual void draw();
     };
 }

@@ -6,23 +6,19 @@
 using namespace s3d;
 using namespace SamlUI;
 
-namespace {
-	std::shared_ptr<UIElement> CreateElement(const String& name)
-	{
-		if (name == U"Button") {
-			return std::shared_ptr<UIElement>((UIElement*)new Button());
-		}
-
-		throw std::exception(std::string("The element name \"" + name.narrow() + "\" was not implemented.").c_str());
-	}
-
+namespace 
+{
 	std::shared_ptr<UIElement> CreateElement(const XMLElement& xmlElement)
 	{
-		std::shared_ptr<UIElement> uiElement = CreateElement(xmlElement.name());
+		String className = xmlElement.name();
+
+		std::shared_ptr<UIElement> uiElement = UIElement::create(className);
 
 		for (auto& attrPair : xmlElement.attributes())
 		{
-			uiElement->SetProperty(attrPair.first, attrPair.second);
+			String propName = attrPair.first;
+			String value = attrPair.second;
+			uiElement->setProperty(propName, value);
 		}
 
 		return uiElement;

@@ -13,7 +13,7 @@ void Main()
 	Scene::SetBackground(ColorF(0.8, 0.9, 1.0));
 
 	// 大きさ 60 のフォントを用意
-	const Font font(30);
+	const Font font(18);
 
 	// 猫のテクスチャを用意
 	const Texture cat(Emoji(U"🐈"));

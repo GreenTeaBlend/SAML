@@ -7,10 +7,11 @@ namespace s3d::SamlUI
     class TextBox : public RectElement
     {
     public:
+        static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
         TextBox();
 
-        virtual void SetProperty(const String& name, const String& value);
+        //virtual void SetProperty(const String& name, const String& value);
 
         virtual void draw();
     };

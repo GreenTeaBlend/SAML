@@ -21,8 +21,6 @@ namespace s3d::SamlUI
 
         RectElement();
 
-        virtual void SetProperty(const String& name, const String& value);
-
         virtual void draw();
     };
 }

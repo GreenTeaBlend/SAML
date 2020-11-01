@@ -4,7 +4,7 @@
 namespace s3d::SamlUI {
     class UIElement;
 }
-using PropertySetter = std::function<void(s3d::SamlUI::UIElement*, const s3d::String&, const s3d::String&)>;
+using PropertySetter = std::function<void(s3d::SamlUI::UIElement*, const s3d::String&)>;
 
 namespace s3d::SamlUI
 {
@@ -23,18 +23,23 @@ namespace s3d::SamlUI
         UIElementData(std::function<std::shared_ptr<class UIElement>()> factory, HashTable<String, PropertySetter> m_properties);
 
         std::shared_ptr<class UIElement> create() { return m_instanceFactory(); }
+        void setProperty(UIElement* element, const String& propName, const String& value);
     };
 
     class UIElement 
     {
-        static HashTable<String, std::shared_ptr<UIElementData>> m_elementDatas;
+        static HashTable<String, std::shared_ptr<UIElementData>> elementDatas;
 
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
+        static std::shared_ptr<UIElement> create(const String& className);
+
         static void initialize();
 
-        virtual void SetProperty(const String& name, const String& value);
+        UIElement();
+
+        void setProperty(const String& propName, const String& value);
 
         virtual void draw() {};
     };

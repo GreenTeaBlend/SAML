@@ -9,20 +9,10 @@ Button::Button() :
 
 }
 
-void Button::SetProperty(const String& name, const String& value) 
-{
-    if (name == U"Text") {
-        m_text = value;
-        return;
-    }
-
-    RectElement::SetProperty(name, value);
-}
-
 void Button::enumratePropertyData(HashTable<String, PropertySetter>* datas)
 {
     datas->insert(std::make_pair(U"Text",
-        [&](UIElement* elm, const String& name, const String& value) {
+        [&](UIElement* elm, const String& value) {
             ((Button*)elm)->m_text = value;
         }));
 

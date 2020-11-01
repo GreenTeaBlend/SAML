@@ -8,9 +8,14 @@ SamlUI::TextBox::TextBox()
 
 }
 
-void SamlUI::TextBox::SetProperty(const String& name, const String& value)
+void SamlUI::TextBox::enumratePropertyData(HashTable<String, PropertySetter>* datas)
 {
-    RectElement::SetProperty(name, value);
+    //datas->insert(std::make_pair(U"Text",
+    //    [&](UIElement* elm, const String& value) {
+    //        ((SamlUI::TextBox*)elm)->m_text = value;
+    //    }));
+
+    RectElement::enumratePropertyData(datas);
 }
 
 void SamlUI::TextBox::draw()
