@@ -1,8 +1,9 @@
 #include "SamlController.h"
 #include "UIElement.h"
 
-#include "Button.h"
+#include "Elements/Button.h"
 
+using namespace s3d;
 using namespace SamlUI;
 
 namespace {

@@ -1,7 +1,7 @@
 #pragma once
 #include <Siv3D.hpp>
 
-namespace SamlUI
+namespace s3d::SamlUI
 {
     class PropertyNotImplementedException : public std::runtime_error
     {

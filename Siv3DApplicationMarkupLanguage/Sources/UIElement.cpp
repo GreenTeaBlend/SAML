@@ -1,5 +1,6 @@
 #include "UIElement.h"
 
+using namespace s3d;
 using namespace SamlUI;
 
 PropertyNotImplementedException::PropertyNotImplementedException(const char* elementName, const char* propertyName)

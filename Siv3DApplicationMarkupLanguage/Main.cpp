@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "SamlController.h"
+using namespace s3d;
 
 void Main()
 {
@@ -32,7 +33,7 @@ void Main()
 	}
 	Process::Spawn(U"C:\\WINDOWS\\system32\\notepad.exe", filePath);
 
-	uint32 lastFileCheckTime = Time::GetMillisec();
+	uint64 lastFileCheckTime = Time::GetMillisec();
 	DateTime lastFileWriteTime = FileSystem::WriteTime(filePath).value();
 
 	SamlUI::SamlController saml{};

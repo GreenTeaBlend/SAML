@@ -2,7 +2,7 @@
 #include <Siv3D.hpp>
 #include "UIElement.h"
 
-namespace SamlUI
+namespace s3d::SamlUI
 {
     class Button : UIElement
     {

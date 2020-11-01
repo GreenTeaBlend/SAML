@@ -66,7 +66,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING;NO_S3D_USING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -91,7 +91,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING;NO_S3D_USING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -111,7 +111,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Sources\Button.cpp" />
+    <ClCompile Include="Sources\Elements\Button.cpp" />
+    <ClCompile Include="Sources\Elements\TextBox.cpp" />
     <ClCompile Include="Sources\SamlController.cpp" />
     <ClCompile Include="Sources\UIElement.cpp" />
   </ItemGroup>
@@ -240,7 +241,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Headers\Button.h" />
+    <ClInclude Include="Headers\Elements\Button.h" />
+    <ClInclude Include="Headers\Elements\TextBox.h" />
     <ClInclude Include="Headers\SamlController.h" />
     <ClInclude Include="Headers\UIElement.h" />
   </ItemGroup>
