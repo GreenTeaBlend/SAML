@@ -17,16 +17,17 @@ namespace s3d::SamlUI
     class UIElementData
     {
         std::function<std::shared_ptr<class UIElement>()> m_instanceFactory;
+        HashTable<String, PropertySetter> m_propertySetters;
 
     public:
-        UIElementData(std::function<std::shared_ptr<class UIElement>()> factory);
+        UIElementData(std::function<std::shared_ptr<class UIElement>()> factory, HashTable<String, PropertySetter> m_properties);
 
         std::shared_ptr<class UIElement> create() { return m_instanceFactory(); }
     };
 
     class UIElement 
     {
-        static HashTable<String, UIElementData> m_elementDatas;
+        static HashTable<String, std::shared_ptr<UIElementData>> m_elementDatas;
 
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);

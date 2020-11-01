@@ -4,7 +4,7 @@
 
 namespace s3d::SamlUI
 {
-    class RectElement : UIElement
+    class RectElement : public UIElement
     {
         Vec2 m_position;
 

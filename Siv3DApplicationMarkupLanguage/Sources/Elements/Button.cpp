@@ -19,6 +19,16 @@ void Button::SetProperty(const String& name, const String& value)
     RectElement::SetProperty(name, value);
 }
 
+void Button::enumratePropertyData(HashTable<String, PropertySetter>* datas)
+{
+    datas->insert(std::make_pair(U"Text",
+        [&](UIElement* elm, const String& name, const String& value) {
+            ((Button*)elm)->m_text = value;
+        }));
+
+    RectElement::enumratePropertyData(datas);
+}
+
 void Button::draw()
 {
     auto position = 

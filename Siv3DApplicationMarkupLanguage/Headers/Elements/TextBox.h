@@ -4,7 +4,7 @@
 
 namespace s3d::SamlUI
 {
-    class TextBox : RectElement
+    class TextBox : public RectElement
     {
     public:
 

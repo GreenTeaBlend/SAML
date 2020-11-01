@@ -27,14 +27,14 @@ void RectElement::SetProperty(const String& name, const String& value)
 
 void RectElement::enumratePropertyData(HashTable<String, PropertySetter>* datas)
 {
-
-    //datas->insert(std::make_pair(U"Size",
-    //    [&](const String& name, const String& value) {
-    //        m_size = Parse<Vec2>(value);
-    //    }));
     datas->insert(std::make_pair(U"Position",
         [&](UIElement* elm, const String& name, const String& value) {
             ((RectElement*)elm)->m_position = Parse<Vec2>(value);
+        }));
+
+    datas->insert(std::make_pair(U"Size",
+        [&](UIElement* elm, const String& name, const String& value) {
+            ((RectElement*)elm)->m_size = Parse<Vec2>(value);
         }));
 
     UIElement::enumratePropertyData(datas);
