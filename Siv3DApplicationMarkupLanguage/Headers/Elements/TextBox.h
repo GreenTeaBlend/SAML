@@ -11,8 +11,6 @@ namespace s3d::SamlUI
 
         TextBox();
 
-        //virtual void SetProperty(const String& name, const String& value);
-
         virtual void draw();
     };
 }

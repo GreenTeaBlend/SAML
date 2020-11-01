@@ -4,6 +4,7 @@
 
 namespace s3d::SamlUI
 {
+    // 矩形の領域を持つUI要素の基底クラス
     class RectElement : public UIElement
     {
         Vec2 m_position;
