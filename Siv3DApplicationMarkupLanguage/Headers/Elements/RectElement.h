@@ -11,6 +11,8 @@ namespace s3d::SamlUI
         Vec2 m_size;
 
     public:
+        static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
+
         const Vec2& getPosition() const { return m_position; }
         void getPosition(const Vec2& position) { m_position = position; }
 

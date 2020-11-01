@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "SamlController.h"
+#include "UIElement.h"
 using namespace s3d;
 
 void Main()
@@ -40,6 +41,7 @@ void Main()
 	uint64 lastFileCheckTime = Time::GetMillisec();
 	DateTime lastFileWriteTime = FileSystem::WriteTime(filePath).value();
 
+	SamlUI::UIElement::initialize();
 	SamlUI::SamlController saml{};
 
 	while (System::Update())
