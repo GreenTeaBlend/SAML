@@ -2,7 +2,7 @@
 # include <Siv3D.hpp> // OpenSiv3D v0.4.3
 #include <fstream>
 
-#include "SumlController.h"
+#include "SamlController.h"
 
 void Main()
 {
@@ -35,7 +35,7 @@ void Main()
 	uint32 lastFileCheckTime = Time::GetMillisec();
 	DateTime lastFileWriteTime = FileSystem::WriteTime(filePath).value();
 
-	Suml::SumlController suml{};
+	SamlUI::SamlController saml{};
 
 	while (System::Update())
 	{
@@ -53,7 +53,7 @@ void Main()
 					std::istreambuf_iterator<char>());
 				strm.close();
 
-				suml.parse(Unicode::Widen(str));
+				saml.parse(Unicode::Widen(str));
 			}
 		}
 
@@ -80,11 +80,11 @@ void Main()
 			catPos = RandomVec2(Scene::Rect());
 		}
 
-		if (suml.isValid()) {
-			suml.draw();
+		if (saml.isValid()) {
+			saml.draw();
 		}
 		else {
-			font(suml.getError()).drawAt(Scene::Center(), Palette::Black);
+			font(saml.getError()).drawAt(Scene::Center(), Palette::Black);
 		}
 
 		//FileSystem::

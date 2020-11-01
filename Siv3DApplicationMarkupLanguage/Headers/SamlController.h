@@ -1,12 +1,12 @@
 #pragma once
 #include <Siv3D.hpp>
 
-namespace Suml
+namespace SamlUI
 {
     class UIElement;
 
     // XMLベースのUI描画クラス
-    class SumlController
+    class SamlController
     {
         bool m_isValid;
 
@@ -18,7 +18,7 @@ namespace Suml
         bool parseXmlElement(XMLElement* xmlElement);
 
     public:
-        SumlController();
+        SamlController();
 
         void parse(String xml);
 

@@ -112,7 +112,7 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Sources\Button.cpp" />
-    <ClCompile Include="Sources\SumlController.cpp" />
+    <ClCompile Include="Sources\SamlController.cpp" />
     <ClCompile Include="Sources\UIElement.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -241,7 +241,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Button.h" />
-    <ClInclude Include="Headers\SumlController.h" />
+    <ClInclude Include="Headers\SamlController.h" />
     <ClInclude Include="Headers\UIElement.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

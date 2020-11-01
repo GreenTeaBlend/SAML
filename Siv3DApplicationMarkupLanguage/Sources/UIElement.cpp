@@ -1,6 +1,6 @@
 #include "UIElement.h"
 
-using namespace Suml;
+using namespace SamlUI;
 
 PropertyNotImplementedException::PropertyNotImplementedException(const char* elementName, const char* propertyName)
     : runtime_error("There is no property named \"" + std::string(propertyName) + "\" in \"" + std::string(elementName) + "\".")

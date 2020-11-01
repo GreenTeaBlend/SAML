@@ -1,6 +1,6 @@
 #include "Button.h"
 
-using namespace Suml;
+using namespace SamlUI;
 
 Button::Button() :
     m_position(0, 0),

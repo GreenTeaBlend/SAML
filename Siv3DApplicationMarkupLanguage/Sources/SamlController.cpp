@@ -1,9 +1,9 @@
-#include "SumlController.h"
+#include "SamlController.h"
 #include "UIElement.h"
 
 #include "Button.h"
 
-using namespace Suml;
+using namespace SamlUI;
 
 namespace {
 	std::shared_ptr<UIElement> CreateElement(const String& name)
@@ -28,7 +28,7 @@ namespace {
 	}
 }
 
-SumlController::SumlController():
+SamlController::SamlController():
     m_isValid(false),
 	m_error(U"XML has not been parsed."),
 	m_elements()
@@ -36,7 +36,7 @@ SumlController::SumlController():
 
 }
 
-void SumlController::parse(String xml)
+void SamlController::parse(String xml)
 {
 	m_isValid = false;
 	m_error = U"";
@@ -91,7 +91,7 @@ void SumlController::parse(String xml)
 
 }
 
-bool SumlController::parseXmlElement(XMLElement* xmlElement)
+bool SamlController::parseXmlElement(XMLElement* xmlElement)
 {
 	if (xmlElement->isNull()) 
 	{
@@ -114,7 +114,7 @@ bool SumlController::parseXmlElement(XMLElement* xmlElement)
 	return true;
 }
 
-void SumlController::draw()
+void SamlController::draw()
 {
 	if (m_isValid == false) {
 		return;
