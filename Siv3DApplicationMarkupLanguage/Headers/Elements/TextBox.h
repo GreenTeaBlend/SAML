@@ -56,7 +56,7 @@ namespace s3d::SamlUI
 
         bool m_isFocused;
 
-        int m_cursorPos;
+        size_t m_cursorPos;
 
         ScrollBarVisibility m_isHorizontalScrollBarVisibility;
         ScrollBarVisibility m_isVerticalScrollBarVisibility;

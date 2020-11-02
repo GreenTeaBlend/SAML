@@ -80,8 +80,10 @@ bool SamlUI::TextBox::draw()
     // キーボードからテキストを入力
     m_cursorPos = TextInput::UpdateText(m_text, m_cursorPos);
 
-    if (KeyRight.down()) { m_cursorPos++; }
-    else if (KeyLeft.down()) { m_cursorPos--; }
+    int cursorPos = static_cast<int>(m_cursorPos);
+    if (KeyRight.down()) { cursorPos++; }
+    else if (KeyLeft.down()) { cursorPos--; }
+    m_cursorPos = static_cast<size_t>(Clamp(cursorPos, 0, (int)m_text.size()));
 
     RectF rect{ getPosition(), getSize() };
 
@@ -142,6 +144,15 @@ bool SamlUI::TextBox::draw()
 
     // 文字領域描画(デバッグ用)
     //RectF(rect.pos, widthMax, heightMax).draw(ColorF(Palette::Green, 0.3));
+
+    if (widthMax > 0.0001) {
+        horizontal.length = (widthMax < rect.w) ? 1.0 : (rect.w - m_verticalBarThickness) / widthMax;
+        horizontal.pos = 0.0;
+    }
+    if (heightMax > 0.0001) {
+        vertical.length = (heightMax < rect.h) ? 1.0 : (rect.h - m_horizontalBarThickness) / heightMax;
+        vertical.pos = 0.0;
+    }
 
     // ステンシル矩形の設定を戻す
     Graphics2D::SetScissorRect(textRegion);
