@@ -4,7 +4,8 @@ using namespace s3d;
 using namespace SamlUI;
 
 Button::Button() :
-    m_text()
+    m_text(U"button"),
+    m_font(20)
 {
 
 }
@@ -22,7 +23,10 @@ void Button::enumratePropertyData(HashTable<String, PropertySetter>* datas)
 bool Button::draw()
 {
     RectF rect{ getPosition(), getSize() };
-    rect.draw(Palette::Aqua);
+    rect.draw(Palette::White);
+    rect.drawFrame(1.0, Palette::Black);
+
+    m_font(m_text).drawAt(rect.center(), Palette::Black);
 
     return rect.mouseOver();
 }

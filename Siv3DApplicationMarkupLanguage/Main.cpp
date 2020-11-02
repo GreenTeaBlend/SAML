@@ -26,24 +26,13 @@ void Main()
 
 	TextEditState text{};
 
-	//String filePath = String(FileSystem::TemporaryDirectoryPath() + U"test.txt");
-	//{
-	//	std::ofstream ofs;
-	//	ofs.open(filePath.narrow());
-	//	ofs << xml.narrow();
-	//	ofs.close();
-	//}
-	////Process::Spawn(U"C:\\WINDOWS\\system32\\notepad.exe", filePath);
-
 	uint64 lastCheckTime = Time::GetMillisec();
 
 	SamlUI::UIElement::initialize();
 	SamlUI::SamlController samlEditor{};
 	SamlUI::SamlController samlPreview{};
 
-	String editorXml =
-		String(U"<Button/>\n") +
-		String(U"<TextBox Name=\"textBox\" Size=\"(200, 600)\" Position=\"(0, 0)\"/>");
+	String editorXml = U"<TextBox Name=\"textBox\" Size=\"(200, 600)\" Position=\"(0, 0)\"/>";
 
 	samlEditor.parse(editorXml);
 
@@ -57,14 +46,15 @@ void Main()
 			lastCheckTime = Time::GetMillisec();
 		}
 
+		samlEditor.draw();
+
 		if (samlPreview.isValid()) {
+			Transformer2D transformer{ Mat3x2::Translate(Vec2(200, 0)) };
 			samlPreview.draw();
 		}
 		else {
 			font(samlPreview.getError()).drawAt(Scene::Center(), Palette::Black);
 		}
-		
-		samlEditor.draw();
 
 		// マウスカーソルに追従する半透明の赤い円を描く
 		Circle(Cursor::Pos(), 40).draw(ColorF(1, 0, 0, 0.5));

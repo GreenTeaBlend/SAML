@@ -7,6 +7,8 @@ namespace s3d::SamlUI
     class Button : public RectElement
     {
         String m_text;
+
+        Font m_font;
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 

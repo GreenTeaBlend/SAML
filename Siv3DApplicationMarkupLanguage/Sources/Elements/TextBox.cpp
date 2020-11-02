@@ -38,7 +38,7 @@ void SamlUI::TextBox::TextPoitionIndexer::next()
 
 SamlUI::TextBox::TextBox() :
     m_font(20),
-    m_text(U"aiueoaaaaaaaaaaaaa\nhogehogehoge\bbbbbbbb"),
+    m_text(U""),
     m_isFocused(),
     m_cursorPos(3)
 {
