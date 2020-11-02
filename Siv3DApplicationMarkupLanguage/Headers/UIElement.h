@@ -26,6 +26,14 @@ namespace s3d::SamlUI
 
         void setProperty(const String& propName, const String& value);
 
-        virtual void draw() {};
+        // 描画する。マウスオーバーされていたらtrueを返す。
+        virtual bool draw() { return false; }
+
+        // マウスクリックなどによるFocus状態開始
+        virtual void onFocusStart() {}
+        virtual void onFocusEnd() {}
+
+        virtual void onMouseOverStart() {}
+        virtual void onMouseOverEnd() {}
     };
 }

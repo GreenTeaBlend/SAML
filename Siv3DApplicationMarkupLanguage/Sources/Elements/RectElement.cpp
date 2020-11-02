@@ -24,8 +24,3 @@ void RectElement::enumratePropertyData(HashTable<String, PropertySetter>* datas)
 
     UIElement::enumratePropertyData(datas);
 }
-
-void RectElement::draw()
-{
-    RectF(m_position, m_size).draw(Palette::Aqua);
-}

@@ -36,13 +36,14 @@ void Main()
 		ofs << xml.narrow();
 		ofs.close();
 	}
-	Process::Spawn(U"C:\\WINDOWS\\system32\\notepad.exe", filePath);
+	//Process::Spawn(U"C:\\WINDOWS\\system32\\notepad.exe", filePath);
 
 	uint64 lastFileCheckTime = Time::GetMillisec();
 	DateTime lastFileWriteTime = FileSystem::WriteTime(filePath).value();
 
 	SamlUI::UIElement::initialize();
 	SamlUI::SamlController saml{};
+	saml.parse(xml);
 
 	while (System::Update())
 	{

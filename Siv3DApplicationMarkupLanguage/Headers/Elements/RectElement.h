@@ -21,7 +21,5 @@ namespace s3d::SamlUI
         void getSize(const Vec2& size) { m_size = size; }
 
         RectElement();
-
-        virtual void draw();
     };
 }

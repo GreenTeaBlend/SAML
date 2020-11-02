@@ -17,6 +17,9 @@ namespace s3d::SamlUI
         // ˆø”‚ÌxmlElement‚ğUIElement‚Æ‚µ‚ÄParse‚·‚éBisNull()==true‚È‚çfalse‚ğ•Ô‚·B
         bool parseXmlElement(XMLElement* xmlElement);
 
+        std::shared_ptr<UIElement> m_mouseOveredElement;
+        std::shared_ptr<UIElement> m_focusingElement;
+
     public:
         SamlController();
 

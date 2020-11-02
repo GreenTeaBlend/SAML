@@ -15,6 +15,6 @@ namespace s3d::SamlUI
 
         Button();
 
-        virtual void draw();
+        virtual bool draw() override;
     };
 }

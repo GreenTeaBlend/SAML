@@ -19,8 +19,10 @@ void Button::enumratePropertyData(HashTable<String, PropertySetter>* datas)
     RectElement::enumratePropertyData(datas);
 }
 
-void Button::draw()
+bool Button::draw()
 {
-    auto position = 
-    RectF(getPosition(), getSize()).draw(Palette::Aqua);
+    RectF rect{ getPosition(), getSize() };
+    rect.draw(Palette::Aqua);
+
+    return rect.mouseOver();
 }

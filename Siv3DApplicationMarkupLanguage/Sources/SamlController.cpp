@@ -28,7 +28,9 @@ namespace
 SamlController::SamlController():
     m_isValid(false),
 	m_error(U"XML has not been parsed."),
-	m_elements()
+	m_elements(),
+	m_mouseOveredElement(),
+	m_focusingElement()
 {
 
 }
@@ -117,8 +119,39 @@ void SamlController::draw()
 		return;
 	}
 
+	std::shared_ptr<UIElement> mouseOveredElement;
 	for (auto& element : m_elements)
 	{
-		element->draw();
+		if (element->draw()) {
+			mouseOveredElement = element;
+		}
+	}
+
+	// マウスオーバー処理
+	if (m_mouseOveredElement != mouseOveredElement) 
+	{
+		if (m_mouseOveredElement != nullptr) {
+			m_mouseOveredElement->onMouseOverEnd();
+		}
+
+		m_mouseOveredElement = mouseOveredElement;
+
+		if (m_mouseOveredElement != nullptr) {
+			m_mouseOveredElement->onMouseOverStart();
+		}
+	}
+
+	// フォーカス処理
+	if (MouseL.down() && m_focusingElement != m_mouseOveredElement)
+	{
+		if (m_focusingElement != nullptr) {
+			m_focusingElement->onFocusEnd();
+		}
+
+		m_focusingElement = m_mouseOveredElement;
+
+		if (m_focusingElement != nullptr) {
+			m_focusingElement->onFocusStart();
+		}
 	}
 }
