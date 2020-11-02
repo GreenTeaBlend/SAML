@@ -6,25 +6,6 @@
 using namespace s3d;
 using namespace SamlUI;
 
-namespace 
-{
-	std::shared_ptr<UIElement> CreateElement(const XMLElement& xmlElement)
-	{
-		String className = xmlElement.name();
-
-		std::shared_ptr<UIElement> uiElement = UIElement::create(className);
-
-		for (auto& attrPair : xmlElement.attributes())
-		{
-			String propName = attrPair.first;
-			String value = attrPair.second;
-			uiElement->setProperty(propName, value);
-		}
-
-		return uiElement;
-	}
-}
-
 SamlController::SamlController():
     m_isValid(false),
 	m_error(U"XML has not been parsed."),
@@ -97,7 +78,7 @@ bool SamlController::parseXmlElement(XMLElement* xmlElement)
 		return false;
 	}
 
-	m_elements.push_back(CreateElement(*xmlElement));
+	m_elements.push_back(createElement(*xmlElement));
 
 	XMLElement child = xmlElement->firstChild();
 	while (true) 
@@ -111,6 +92,27 @@ bool SamlController::parseXmlElement(XMLElement* xmlElement)
 	}
 
 	return true;
+}
+
+std::shared_ptr<UIElement> SamlController::createElement(const XMLElement& xmlElement)
+{
+	String className = xmlElement.name();
+
+	std::shared_ptr<UIElement> uiElement = UIElement::create(className);
+
+	for (auto& attrPair : xmlElement.attributes())
+	{
+		String propName = attrPair.first;
+		String value = attrPair.second;
+		uiElement->setProperty(propName, value);
+
+		// Ç¢Ç¡ÇΩÇÒâºíuÇ´ÅBUIElementÇÃsetName()Ç©ÇÁê›íËÇ≈Ç´ÇÈÇÊÇ§Ç…ÇµÇΩÇ¢ÅB
+		if (propName == U"Name") {
+			m_namedElements.insert(std::make_pair(value, uiElement));
+		}
+	}
+
+	return uiElement;
 }
 
 void SamlController::draw()

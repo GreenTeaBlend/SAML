@@ -16,9 +16,12 @@ namespace s3d::SamlUI
 
         // 引数のxmlElementをUIElementとしてParseする。isNull()==trueならfalseを返す。
         bool parseXmlElement(XMLElement* xmlElement);
+        std::shared_ptr<UIElement> createElement(const XMLElement& xmlElement);
 
         std::shared_ptr<UIElement> m_mouseOveredElement;
         std::shared_ptr<UIElement> m_focusingElement;
+
+        s3d::HashTable<String, std::shared_ptr<UIElement>> m_namedElements;
 
     public:
         SamlController();
@@ -30,6 +33,9 @@ namespace s3d::SamlUI
 
         // 最後に実行したparseで発生したエラー。
         String getError() { return m_error; }
+
+        // NameAttributeが設定されているUIElementをしゅとくする。
+        const std::shared_ptr<UIElement> getElement(const String& name) const { return m_namedElements.at(name); }
 
         void draw();
     };

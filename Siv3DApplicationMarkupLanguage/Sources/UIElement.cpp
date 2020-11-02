@@ -41,9 +41,12 @@ UIElement::UIElement()
 
 }
 
-void UIElement::enumratePropertyData(HashTable<String, PropertySetter>*)
+void UIElement::enumratePropertyData(HashTable<String, PropertySetter>* datas)
 {
-
+    datas->insert(std::make_pair(U"Name",
+        [&](UIElement* elm, const String& value) {
+            ((Button*)elm)->m_name = value;
+        }));
 }
 
 void UIElement::setProperty(const String& propName, const String& value)

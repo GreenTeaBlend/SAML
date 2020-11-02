@@ -4,6 +4,7 @@
 
 #include "SamlController.h"
 #include "UIElement.h"
+#include "Elements/TextBox.h"
 using namespace s3d;
 
 void Main()
@@ -25,85 +26,47 @@ void Main()
 
 	TextEditState text{};
 
-	String xml =
-		String(U"<Button/>\n") +
-		String(U"<TextBox Position=\"(150, 400)\"/>");
+	//String filePath = String(FileSystem::TemporaryDirectoryPath() + U"test.txt");
+	//{
+	//	std::ofstream ofs;
+	//	ofs.open(filePath.narrow());
+	//	ofs << xml.narrow();
+	//	ofs.close();
+	//}
+	////Process::Spawn(U"C:\\WINDOWS\\system32\\notepad.exe", filePath);
 
-	String filePath = String(FileSystem::TemporaryDirectoryPath() + U"test.txt");
-	{
-		std::ofstream ofs;
-		ofs.open(filePath.narrow());
-		ofs << xml.narrow();
-		ofs.close();
-	}
-	//Process::Spawn(U"C:\\WINDOWS\\system32\\notepad.exe", filePath);
-
-	uint64 lastFileCheckTime = Time::GetMillisec();
-	DateTime lastFileWriteTime = FileSystem::WriteTime(filePath).value();
+	uint64 lastCheckTime = Time::GetMillisec();
 
 	SamlUI::UIElement::initialize();
-	SamlUI::SamlController saml{};
-	saml.parse(xml);
+	SamlUI::SamlController samlEditor{};
+	SamlUI::SamlController samlPreview{};
+
+	String editorXml =
+		String(U"<Button/>\n") +
+		String(U"<TextBox Name=\"textBox\" Size=\"(200, 600)\" Position=\"(0, 0)\"/>");
+
+	samlEditor.parse(editorXml);
 
 	while (System::Update())
 	{
-		if (Time::GetMillisec() - lastFileCheckTime > 100)
+		if (Time::GetMillisec() - lastCheckTime > 1000)
 		{
-			lastFileCheckTime = Time::GetMillisec();
+			String xml = std::dynamic_pointer_cast<SamlUI::TextBox>(samlEditor.getElement(U"textBox"))->getText();
+			samlPreview.parse(xml);
 
-			DateTime fileWriteTime = FileSystem::WriteTime(filePath).value();
-			if (fileWriteTime != lastFileWriteTime)
-			{
-				lastFileWriteTime = fileWriteTime;
-
-				std::ifstream strm{ filePath.narrow() };
-				std::string str((std::istreambuf_iterator<char>(strm)),
-					std::istreambuf_iterator<char>());
-				strm.close();
-
-				saml.parse(Unicode::Widen(str));
-			}
+			lastCheckTime = Time::GetMillisec();
 		}
 
-		// テキストを画面の中心に描く
-		//font(U"Hello, Siv3D!🐣").drawAt(Scene::Center(), Palette::Black);
-
-		// 大きさをアニメーションさせて猫を表示する
-		//cat.resized(100 + Periodic::Sine0_1(1s) * 20).drawAt(catPos);
+		if (samlPreview.isValid()) {
+			samlPreview.draw();
+		}
+		else {
+			font(samlPreview.getError()).drawAt(Scene::Center(), Palette::Black);
+		}
+		
+		samlEditor.draw();
 
 		// マウスカーソルに追従する半透明の赤い円を描く
 		Circle(Cursor::Pos(), 40).draw(ColorF(1, 0, 0, 0.5));
-
-		//// [A] キーが押されたら
-		//if (KeyA.down())
-		//{
-		//	// Hello とデバッグ表示する
-		//	Print << U"Hello!";
-		//}
-
-		// ボタンが押されたら
-		if (SimpleGUI::Button(U"Move the cat", Vec2(600, 20)))
-		{
-			// 猫の座標を画面内のランダムな位置に移動する
-			catPos = RandomVec2(Scene::Rect());
-		}
-
-		if (saml.isValid()) {
-			saml.draw();
-		}
-		else {
-			font(saml.getError()).drawAt(Scene::Center(), Palette::Black);
-		}
-
-		//FileSystem::
-		//FileSystem::WriteTime
-
-		//if (SimpleGUI::TextBox(text, Vec2(0, 0)))
-		//{
-		//	XMLReader reader{};
-		//	reader.open(s3d::Arg::code_<s3d::String>(text.text));
-		//	font(reader.isOpen()).drawAt(Scene::Center(), Palette::Black);
-		//	//font(reader.isNull()).drawAt(Scene::Center() + Vec2(0, 50), Palette::Black);
-		//}
 	}
 }

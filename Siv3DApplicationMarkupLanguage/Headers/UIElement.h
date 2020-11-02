@@ -12,12 +12,20 @@ namespace s3d::SamlUI
     {
         static HashTable<String, std::shared_ptr<UIElementTypeInfo>> elementDatas;
 
+        // 識別用のUI名
+        String m_name;
+
     public:
         // この型のプロパティ情報をdatasに追加する。
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
         // 引数のクラス名のUIElementを生成する。
         static std::shared_ptr<UIElement> create(const String& className);
+
+#if false // SamlControllerの辞書に登録する処理が必要なので、プロパティの公開はいったん後回し。
+        const String& getName() const { return m_name; }
+        void setName(const String& name) { m_name = name; }
+#endif
 
         // UIElementの情報を読み込む
         static void initialize();
