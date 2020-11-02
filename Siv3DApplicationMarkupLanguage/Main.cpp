@@ -9,6 +9,7 @@ using namespace s3d;
 
 void Main()
 {
+	Window::Resize(1000, 600);
 
 	// 背景を水色にする
 	Scene::SetBackground(ColorF(0.8, 0.9, 1.0));
@@ -28,7 +29,7 @@ void Main()
 	SamlUI::SamlController samlEditor{};
 	SamlUI::SamlController samlPreview{};
 
-	String editorXml = U"<TextBox Name=\"textBox\" Size=\"(200, 600)\" Position=\"(0, 0)\"/>";
+	String editorXml = U"<TextBox Name=\"textBox\" Size=\"(400, 600)\" Position=\"(0, 0)\"/>";
 
 	samlEditor.parse(editorXml);
 
@@ -44,7 +45,7 @@ void Main()
 		samlEditor.draw();
 
 		if (samlPreview.isValid()) {
-			Transformer2D transformer{ Mat3x2::Translate(Vec2(200, 0)), true };
+			Transformer2D transformer{ Mat3x2::Translate(Vec2(400, 0)), true };
 			samlPreview.draw();
 		}
 		else {
@@ -65,8 +66,5 @@ void Main()
 
 			isTextEditted = false;
 		}
-
-		// マウスカーソルに追従する半透明の赤い円を描く
-		Circle(Cursor::Pos(), 40).draw(ColorF(1, 0, 0, 0.5));
 	}
 }

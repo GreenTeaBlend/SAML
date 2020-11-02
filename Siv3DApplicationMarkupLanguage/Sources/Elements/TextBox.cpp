@@ -67,6 +67,12 @@ bool SamlUI::TextBox::draw()
 
     rect.draw(Palette::Aqua);
 
+    RasterizerState rstatePre = Graphics2D::GetRasterizerState();
+    RasterizerState rstateScissor = rstatePre;
+    rstateScissor.scissorEnable = true;
+    Graphics2D::Internal::SetRasterizerState(rstateScissor);
+    Graphics2D::SetScissorRect(rect);
+
     for (TextPoitionIndexer indexer{ getPosition(), m_text, m_font }; ; indexer.next())
     {
         const Vec2& pos = indexer.getPos();
@@ -89,28 +95,7 @@ bool SamlUI::TextBox::draw()
         }
     }
 
-    //Vec2 pos{ getPosition() };
-    //double h = m_font(U' ').region().h;
-    //int index = 0;
-    //for (auto* c = m_text.c_str(); *c != (String::value_type)0; c++)
-    //{
-    //    if (index == m_cursorPos) {
-    //        Line(pos, pos + Vec2{ 0, h }).draw(Palette::Black);
-    //    }
-
-    //    if (*c == U'\n') {
-    //        pos.y += h;
-    //        pos.x = rect.pos.x;
-    //    }
-    //    else {
-    //        //RectF charRect = m_font(*c).draw(pos, Palette::Black);
-    //        m_font(*c).draw(pos, Palette::Black);
-    //        RectF charRect = m_font(*c).region(pos);
-    //        pos.x = charRect.br().x;
-    //        h = Max(h, charRect.h);
-    //    }
-    //    index++;
-    //}
+    Graphics2D::Internal::SetRasterizerState(rstatePre);
 
     if (m_isFocused) {
         rect.drawFrame(1, 0, Palette::Black);
