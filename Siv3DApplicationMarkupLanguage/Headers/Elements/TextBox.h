@@ -36,7 +36,19 @@ namespace s3d::SamlUI
             const RectF& getRegion() const { return m_currentRegion; }
             // 現在の文字のフォント (複数のフォントに対応予定)
             const Font& getFont() const { return m_font; }
+            // 現在の行の最大高さ == 次に改行するときのy座標に加算する量
+            double getCurrenMaxHeight() const { return m_currenMaxHeight; }
         };
+
+        struct ScrollBarState {
+            bool visible;
+            double length; // 全体に占めるバーの長さ。 0~1
+            double pos; // バーの左(上)の位置。 0~1
+        };
+
+        // スクロールバーの幅
+        double m_horizontalBarThickness = 10.0;
+        double m_verticalBarThickness = 10.0;
 
         Font m_font;
 
@@ -49,8 +61,11 @@ namespace s3d::SamlUI
         ScrollBarVisibility m_isHorizontalScrollBarVisibility;
         ScrollBarVisibility m_isVerticalScrollBarVisibility;
 
-        // スクロールバーを表示するか判定するとともに、テキスト描画領域の矩形を返す。
-        void previewScrollBar(RectF* rect, bool* horizontal, bool* vertical);
+        // スクロールバーを表示するか判定する
+        void previewScrollBar(ScrollBarState* horizontal, ScrollBarState* vertical);
+
+        // スクロールバー描画
+        void drawScrollBar(const ScrollBarState& horizontal, const ScrollBarState& vertical);
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
