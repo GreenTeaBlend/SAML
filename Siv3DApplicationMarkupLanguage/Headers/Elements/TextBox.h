@@ -20,6 +20,8 @@ namespace s3d::SamlUI
 
         virtual bool draw() override;
 
+        virtual void onClicked() override;
+
         virtual void onFocusStart() override;
         virtual void onFocusEnd() override;
 

@@ -27,7 +27,7 @@ void Main()
 
 	String xml =
 		String(U"<Button/>\n") +
-		String(U"<TextBox Position=\"(100, 400)\"/>");
+		String(U"<TextBox Position=\"(150, 400)\"/>");
 
 	String filePath = String(FileSystem::TemporaryDirectoryPath() + U"test.txt");
 	{

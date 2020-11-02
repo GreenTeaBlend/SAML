@@ -141,17 +141,26 @@ void SamlController::draw()
 		}
 	}
 
-	// フォーカス処理
-	if (MouseL.down() && m_focusingElement != m_mouseOveredElement)
+	if (MouseL.down()) 
 	{
-		if (m_focusingElement != nullptr) {
-			m_focusingElement->onFocusEnd();
+		// フォーカス処理
+		if (m_focusingElement != m_mouseOveredElement)
+		{
+			if (m_focusingElement != nullptr) {
+				m_focusingElement->onFocusEnd();
+			}
+
+			m_focusingElement = m_mouseOveredElement;
+
+			if (m_focusingElement != nullptr) {
+				m_focusingElement->onFocusStart();
+			}
 		}
 
-		m_focusingElement = m_mouseOveredElement;
-
-		if (m_focusingElement != nullptr) {
-			m_focusingElement->onFocusStart();
+		// クリック
+		if (m_focusingElement != nullptr)
+		{
+			m_focusingElement->onClicked();
 		}
 	}
 }

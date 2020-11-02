@@ -5,7 +5,7 @@ using namespace SamlUI;
 
 SamlUI::TextBox::TextBox() :
     m_font(20),
-    m_text(U"aiueoaaaaaaaaaaaaaaaaaaaa"),
+    m_text(U"aiueoaaaaaaaaaaaaa\nhogehogehoge\bbbbbbbb"),
     m_isFocused(),
     m_cursorPos(3)
 {
@@ -24,17 +24,17 @@ void SamlUI::TextBox::enumratePropertyData(HashTable<String, PropertySetter>* da
 
 bool SamlUI::TextBox::draw()
 {
+    // キーボードからテキストを入力
+    m_cursorPos = TextInput::UpdateText(m_text, m_cursorPos);
+
     RectF rect{ getPosition(), getSize() };
 
     rect.draw(Palette::Aqua);
 
-    String text = U"aiueoauieo\nhogehogehogehoge\nhogehogehogehoge\nhogehogehogehoge";
-    //m_font(text).draw(rect.pos, Palette::Black);
-
-    Vec2 pos{ rect.pos };
+    Vec2 pos{ getPosition() };
     double h = m_font(U' ').region().h;
     int index = 0;
-    for (auto* c = text.c_str(); *c != (String::value_type)0; c++) 
+    for (auto* c = m_text.c_str(); *c != (String::value_type)0; c++)
     {
         if (index == m_cursorPos) {
             Line(pos, pos + Vec2{ 0, h }).draw(Palette::Black);
@@ -45,7 +45,9 @@ bool SamlUI::TextBox::draw()
             pos.x = rect.pos.x;
         }
         else {
-            RectF charRect = m_font(*c).draw(pos, Palette::Black);
+            //RectF charRect = m_font(*c).draw(pos, Palette::Black);
+            m_font(*c).draw(pos, Palette::Black);
+            RectF charRect = m_font(*c).region(pos);
             pos.x = charRect.br().x;
             h = Max(h, charRect.h);
         }
@@ -57,6 +59,44 @@ bool SamlUI::TextBox::draw()
     }
 
     return rect.mouseOver();
+}
+
+void SamlUI::TextBox::onClicked()
+{
+    Vec2 mousePos{ Cursor::Pos() };
+    Vec2 charPos{ getPosition() };
+
+    // クリックした箇所が文字列よりも左か上
+    if (mousePos.x < charPos.x || mousePos.y < charPos.y) {
+        return;
+    }
+
+    double h = m_font(U' ').region().h;
+    int index = 0;
+    for (auto* c = m_text.c_str(); *c != (String::value_type)0; c++)
+    {
+        if (*c == U'\n') {
+            charPos.y += h;
+            charPos.x = getPosition().x;
+        }
+        else {
+            RectF charRect = m_font(*c).region(charPos);
+            Vec2 charBr = charRect.br();
+            charPos.x = charBr.x;
+            h = Max(h, charRect.h);
+
+            if (mousePos.x >= charRect.bl().x && mousePos.x <= charBr.x && mousePos.y <= charBr.y) {
+                if (mousePos.x <= charRect.center().x) {
+                    m_cursorPos = index;
+                }
+                else {
+                    m_cursorPos = index + 1;
+                }
+                break;
+            }
+        }
+        index++;
+    }
 }
 
 void SamlUI::TextBox::onFocusStart()

@@ -29,8 +29,11 @@ namespace s3d::SamlUI
         // 描画する。マウスオーバーされていたらtrueを返す。
         virtual bool draw() { return false; }
 
+        virtual void onClicked() {}
+
         // マウスクリックなどによるFocus状態開始
         virtual void onFocusStart() {}
+        virtual void onFocusing() {}
         virtual void onFocusEnd() {}
 
         virtual void onMouseOverStart() {}
