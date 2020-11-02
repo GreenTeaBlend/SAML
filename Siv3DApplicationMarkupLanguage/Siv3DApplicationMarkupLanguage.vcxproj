@@ -117,6 +117,7 @@
     <ClCompile Include="Sources\SamlController.cpp" />
     <ClCompile Include="Sources\UIElement.cpp" />
     <ClCompile Include="Sources\UIElementTypeInfo.cpp" />
+    <ClCompile Include="Sources\Constants.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\engine\texture\box-shadow\128.png" />
@@ -243,6 +244,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Headers\Contants.h" />
     <ClInclude Include="Headers\Elements\Button.h" />
     <ClInclude Include="Headers\Elements\RectElement.h" />
     <ClInclude Include="Headers\Elements\TextBox.h" />

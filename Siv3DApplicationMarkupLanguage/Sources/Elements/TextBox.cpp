@@ -10,8 +10,8 @@ SamlUI::TextBox::TextPoitionIndexer::TextPoitionIndexer(Vec2 pos, const String& 
     m_pos(pos),
     m_index(0),
     m_height(m_font(' ').region().h),
-    m_currentPos(pos),
-    m_currenMaxtHeight(-1.0)
+    m_currentRegion(),
+    m_currenMaxHeight(-1.0)
 {
 
 }
@@ -22,18 +22,25 @@ void SamlUI::TextBox::TextPoitionIndexer::next()
 
     if (c == U'\n') 
     {
-        m_currentPos.y += m_currenMaxtHeight > 0 ? m_currenMaxtHeight : m_height;
-        m_currentPos.x = m_pos.x;
+        m_currentRegion.y += m_currenMaxHeight > 0 ? m_currenMaxHeight : m_height;
+        m_currentRegion.x = m_pos.x;
     }
     else 
     {
-        RectF charRect = m_font(c).region(m_currentPos);
-        m_currentPos.x = charRect.br().x;
+        RectF charRect = m_font(c).region(m_currentRegion.pos);
+        m_currentRegion.x = charRect.br().x;
 
-        m_currenMaxtHeight = Max(m_currenMaxtHeight, m_height);
+        m_currenMaxHeight = Max(m_currenMaxHeight, m_height);
     }
 
+    // 番号を進める
     m_index++;
+
+    // 次に描画する文字の領域を取得
+    if (m_index < m_text.size()) {
+        const String::value_type& cNext = m_text.at(m_index);
+        m_currentRegion.size = m_font(cNext).region().size;
+    }
 }
 
 SamlUI::TextBox::TextBox() :
@@ -47,10 +54,17 @@ SamlUI::TextBox::TextBox() :
 
 void SamlUI::TextBox::enumratePropertyData(HashTable<String, PropertySetter>* datas)
 {
-    //datas->insert(std::make_pair(U"Text",
-    //    [&](UIElement* elm, const String& value) {
-    //        ((SamlUI::TextBox*)elm)->m_text = value;
-    //    }));
+    datas->insert(std::make_pair(U"VerticalScrollBarVisibility",
+        [&](UIElement* elm, const String& value) {
+            ScrollBarVisibility visibility = StringToScrollVarVisibility(value);
+            ((SamlUI::TextBox*)elm)->setVerticalScrollBarVisibility(visibility);
+        }));
+
+    datas->insert(std::make_pair(U"HorizontalScrollBarVisibility",
+        [&](UIElement* elm, const String& value) {
+            ScrollBarVisibility visibility = StringToScrollVarVisibility(value);
+            ((SamlUI::TextBox*)elm)->setHorizontalScrollBarVisibility(visibility);
+        }));
 
     RectElement::enumratePropertyData(datas);
 }
@@ -75,19 +89,18 @@ bool SamlUI::TextBox::draw()
 
     for (TextPoitionIndexer indexer{ getPosition(), m_text, m_font }; ; indexer.next())
     {
-        const Vec2& pos = indexer.getPos();
+        const RectF& region = indexer.getRegion();
 
         // 文字の描画
         if (indexer.isValid()) {
             const String::value_type& c = indexer.getChar();
-            m_font(c).draw(pos, Palette::Black);
+            m_font(c).draw(region.pos, Palette::Black);
         }
 
         // カーソルの描画
         size_t index = indexer.getIndex();
         if (index == m_cursorPos) {
-            double h = indexer.getFont()(U" ").region().h;
-            Line(pos, pos + Vec2{ 0, h }).draw(Palette::Black);
+            Line(region.pos, region.pos + Vec2{ 0, region.h }).draw(Palette::Black);
         }
 
         if (!indexer.isValid()) {
@@ -102,6 +115,33 @@ bool SamlUI::TextBox::draw()
     }
 
     return rect.mouseOver();
+}
+
+void SamlUI::TextBox::previewScrollBar(RectF* rect, bool* horizontal, bool* vertical)
+{
+    ////--------------------------------------------------
+    //// 縦方向のスクロールバーの表示判定
+    //for (TextPoitionIndexer indexer{ getPosition(), m_text, m_font }; indexer.isValid(); indexer.next())
+    //{
+    //    const Vec2& pos = indexer.getPos();
+
+    //    // 文字の描画
+    //    if (indexer.isValid()) {
+    //        const String::value_type& c = indexer.getChar();
+    //        m_font(c).draw(pos, Palette::Black);
+    //    }
+
+    //    // カーソルの描画
+    //    size_t index = indexer.getIndex();
+    //    if (index == m_cursorPos) {
+    //        double h = indexer.getFont()(U" ").region().h;
+    //        Line(pos, pos + Vec2{ 0, h }).draw(Palette::Black);
+    //    }
+
+    //    if (!indexer.isValid()) {
+    //        break;
+    //    }
+    //}
 }
 
 void SamlUI::TextBox::onClicked()
