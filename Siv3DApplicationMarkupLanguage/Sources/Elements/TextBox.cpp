@@ -167,12 +167,7 @@ void SamlUI::TextBox::onFocusEnd()
     m_isFocused = false;
 }
 
-void SamlUI::TextBox::onMouseOverStart()
+void SamlUI::TextBox::onMouseOvering() 
 {
-    Cursor::SetDefaultStyle(s3d::CursorStyle::IBeam);
-}
-
-void SamlUI::TextBox::onMouseOverEnd()
-{
-    Cursor::SetDefaultStyle(s3d::CursorStyle::Default);
+    Cursor::RequestStyle(s3d::CursorStyle::IBeam);
 }

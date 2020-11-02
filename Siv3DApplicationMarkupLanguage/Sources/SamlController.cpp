@@ -143,6 +143,10 @@ void SamlController::draw()
 		}
 	}
 
+	if (m_mouseOveredElement != nullptr) {
+		m_mouseOveredElement->onMouseOvering();
+	}
+
 	if (MouseL.down()) 
 	{
 		// フォーカス処理

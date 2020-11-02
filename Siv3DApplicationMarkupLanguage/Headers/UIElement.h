@@ -45,6 +45,7 @@ namespace s3d::SamlUI
         virtual void onFocusEnd() {}
 
         virtual void onMouseOverStart() {}
+        virtual void onMouseOvering() {}
         virtual void onMouseOverEnd() {}
     };
 }

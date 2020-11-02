@@ -20,14 +20,14 @@ namespace s3d::SamlUI
             // 現在の行の文字の高さ最大値 (複数の文字サイズを混合できるようにする)
             double m_currenMaxtHeight;
 
-            int m_index;
+            size_t m_index;
         public:
             TextPoitionIndexer(Vec2 pos, const String& text, const Font& font);
             // 次の文字の位置を取得
             void next();
             bool isValid() const { return m_index < m_text.size(); }
             // 文字列内での現在の要素番号。
-            const String::value_type& getIndex() const { return m_index; }
+            const size_t& getIndex() const { return m_index; }
             // 現在の文字
             const String::value_type& getChar() const { return m_text.at(m_index); }
             // 現在の左上の座標
@@ -49,6 +49,7 @@ namespace s3d::SamlUI
         TextBox();
 
         const String& getText() const { return m_text; }
+        void setText(const String& text) { m_text = text; }
 
         virtual bool draw() override;
 
@@ -57,7 +58,6 @@ namespace s3d::SamlUI
         virtual void onFocusStart() override;
         virtual void onFocusEnd() override;
 
-        virtual void onMouseOverStart() override;
-        virtual void onMouseOverEnd() override;
+        virtual void onMouseOvering() override;
     };
 }

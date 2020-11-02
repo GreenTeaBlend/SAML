@@ -24,10 +24,6 @@ void Main()
 
 	TextBox textBox(font, Vec2(0, 0));
 
-	TextEditState text{};
-
-	uint64 lastCheckTime = Time::GetMillisec();
-
 	SamlUI::UIElement::initialize();
 	SamlUI::SamlController samlEditor{};
 	SamlUI::SamlController samlPreview{};
@@ -36,24 +32,38 @@ void Main()
 
 	samlEditor.parse(editorXml);
 
+	uint64 lastIputTime = Time::GetMillisec();
+	bool isTextEditted = false;
+
+	String previewXml = String(U"<Button Position=\"(100, 200)\"/>");
+	std::dynamic_pointer_cast<SamlUI::TextBox>(samlEditor.getElement(U"textBox"))->setText(previewXml);
+	samlPreview.parse(previewXml);
+
 	while (System::Update())
 	{
-		if (Time::GetMillisec() - lastCheckTime > 1000)
-		{
-			String xml = std::dynamic_pointer_cast<SamlUI::TextBox>(samlEditor.getElement(U"textBox"))->getText();
-			samlPreview.parse(xml);
-
-			lastCheckTime = Time::GetMillisec();
-		}
-
 		samlEditor.draw();
 
 		if (samlPreview.isValid()) {
-			Transformer2D transformer{ Mat3x2::Translate(Vec2(200, 0)) };
+			Transformer2D transformer{ Mat3x2::Translate(Vec2(200, 0)), true };
 			samlPreview.draw();
 		}
 		else {
 			font(samlPreview.getError()).drawAt(Scene::Center(), Palette::Black);
+		}
+
+		String text{};
+		if (TextInput::UpdateText(text, 0) != 0 || KeyBackspace.pressed())
+		{
+			lastIputTime = Time::GetMicrosec();
+			isTextEditted = true;
+		}
+
+		if (isTextEditted && Time::GetMillisec() - lastIputTime > 500)
+		{
+			String xml = std::dynamic_pointer_cast<SamlUI::TextBox>(samlEditor.getElement(U"textBox"))->getText();
+			samlPreview.parse(xml);
+
+			isTextEditted = false;
 		}
 
 		// マウスカーソルに追従する半透明の赤い円を描く
