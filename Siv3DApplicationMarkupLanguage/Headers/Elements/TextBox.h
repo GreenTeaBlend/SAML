@@ -44,12 +44,13 @@ namespace s3d::SamlUI
 
         String m_text;
 
-        bool m_isFocused;
-
         size_t m_cursorPos;
 
         // スクロールバーコンポーネント
         std::unique_ptr<ScrollView> m_scrollView;
+
+        // スクロールバーを除いた内側の部分の描画。戻り値は表示領域。
+        SizeF drawInner(bool isMouseOvered);
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
@@ -79,10 +80,5 @@ namespace s3d::SamlUI
         virtual bool draw() override;
 
         virtual void onClicked() override;
-
-        virtual void onFocusStart() override;
-        virtual void onFocusEnd() override;
-
-        virtual void onMouseOvering() override;
     };
 }

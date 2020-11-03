@@ -133,18 +133,14 @@ void SamlController::draw()
 	if (m_mouseOveredElement != mouseOveredElement) 
 	{
 		if (m_mouseOveredElement != nullptr) {
-			m_mouseOveredElement->onMouseOverEnd();
+			m_mouseOveredElement->setMouseOvered(false);
 		}
 
 		m_mouseOveredElement = mouseOveredElement;
 
 		if (m_mouseOveredElement != nullptr) {
-			m_mouseOveredElement->onMouseOverStart();
+			m_mouseOveredElement->setMouseOvered(true);
 		}
-	}
-
-	if (m_mouseOveredElement != nullptr) {
-		m_mouseOveredElement->onMouseOvering();
 	}
 
 	if (MouseL.down()) 
@@ -153,13 +149,13 @@ void SamlController::draw()
 		if (m_focusingElement != m_mouseOveredElement)
 		{
 			if (m_focusingElement != nullptr) {
-				m_focusingElement->onFocusEnd();
+				m_focusingElement->setFocusing(false);
 			}
 
 			m_focusingElement = m_mouseOveredElement;
 
 			if (m_focusingElement != nullptr) {
-				m_focusingElement->onFocusStart();
+				m_focusingElement->setFocusing(true);
 			}
 		}
 

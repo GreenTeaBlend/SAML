@@ -10,10 +10,37 @@ namespace s3d::SamlUI
     // UI要素の基底クラス
     class UIElement 
     {
+        friend class SamlController;
+
         static HashTable<String, std::shared_ptr<UIElementTypeInfo>> elementDatas;
 
         // 識別用のUI名
         String m_name;
+
+        bool m_isMouseOvered;
+        bool m_isFocusing;
+
+        void setMouseOvered(bool value)
+        {
+            if (m_isMouseOvered != value) {
+                m_isMouseOvered = value;
+                onMouseOverChanged();
+            }
+        }
+
+        void setFocusing(bool value)
+        {
+            if (m_isFocusing != value) {
+                m_isFocusing = value;
+                onFocusChanged();
+            }
+        }
+
+    protected:
+
+        virtual void onClicked() {}
+        virtual void onMouseOverChanged() {}
+        virtual void onFocusChanged() {}
 
     public:
         // この型のプロパティ情報をdatasに追加する。
@@ -27,6 +54,9 @@ namespace s3d::SamlUI
         void setName(const String& name) { m_name = name; }
 #endif
 
+        bool isMouseOvered() const { return m_isMouseOvered; }
+        bool isFocusing() const { return m_isFocusing; }
+
         // UIElementの情報を読み込む
         static void initialize();
 
@@ -36,17 +66,5 @@ namespace s3d::SamlUI
 
         // 描画する。マウスオーバーされていたらtrueを返す。
         virtual bool draw() { return false; }
-
-        virtual void onClicked() {}
-
-        // マウスクリックなどによるFocus状態開始
-        virtual void onFocusStart() {}
-        virtual void onFocusing() {}
-        virtual void onFocusEnd() {}
-
-        // マウスオーバー (最も前面のUIのみがマウスオーバー状態になる)
-        virtual void onMouseOverStart() {}
-        virtual void onMouseOvering() {}
-        virtual void onMouseOverEnd() {}
     };
 }

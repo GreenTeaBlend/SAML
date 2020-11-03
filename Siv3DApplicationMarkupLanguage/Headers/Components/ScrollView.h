@@ -38,7 +38,12 @@ namespace s3d::SamlUI
     public:
         ScrollView();
 
-        void draw(std::function<s3d::SizeF()> drawInner);
+        /// <summary>
+        /// スクロールバーと内側の領域を描画する。
+        /// </summary>
+        /// <param name="drawInner">内側を描画する関数。引数は内側をマウスオーバーしているか否かで、戻り値は内側領域のサイズ。</param>
+        /// <param name="isMouseOvered">スクロールバーを含めたElement全体がマウスオーバーされているか。</param>
+        void draw(std::function<s3d::SizeF(bool)> drawInner, bool isMouseOvered);
 
         const RectF& getRect() const { return m_rect; }
         void setRect(const RectF& rect) { m_rect = rect; }

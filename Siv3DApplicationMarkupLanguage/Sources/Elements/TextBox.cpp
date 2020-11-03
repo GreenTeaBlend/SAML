@@ -49,7 +49,6 @@ void SamlUI::TextBox::TextPoitionIndexer::next()
 SamlUI::TextBox::TextBox() :
     m_font(20),
     m_text(U""),
-    m_isFocused(),
     m_cursorPos(3),
     m_scrollView(new ScrollView())
 {
@@ -83,69 +82,73 @@ bool SamlUI::TextBox::draw()
     else if (KeyLeft.down()) { cursorPos--; }
     m_cursorPos = static_cast<size_t>(Clamp(cursorPos, 0, (int)m_text.size()));
 
-    RectF rect{ getPosition(), getSize() };
+    // 描画
+    m_scrollView->draw([&](bool isMouseOvered) {
+        return drawInner(isMouseOvered);
+        }, isMouseOvered());
 
-    //--------------------------------------------------
-    // 背景の描画
-    rect.draw(Palette::White);
-
-    m_scrollView->draw([&]() {
-
-        double widthMax = 0;
-        double heightMax = 0;
-
-        Vec2 textTL = TEXT_PADDING;
-
-        // 1文字ずつ描画
-        for (TextPoitionIndexer indexer{ textTL, m_text, m_font }; ; indexer.next())
-        {
-            // これから描画する文字の領域
-            const RectF& region = indexer.getRegion();
-
-            // 文字の描画
-            // カーソルの描画のために、文字列が終わった後も1文字分だけループを回す。
-            if (indexer.isValid()) {
-                const String::value_type& c = indexer.getChar();
-                if (c != U'\n' && c != U'\r') {
-                    m_font(c).draw(region.pos, Palette::Black);
-                    widthMax = Max(widthMax, (region.br().x - textTL.x));
-                    heightMax = Max(heightMax, (region.br().y - textTL.y));
-                }
-                else if (c == U'\n') {
-                    // 最後に改行文字で終了したときのために、改行後の文字の下端の座標をheightMaxに設定。
-                    double y = region.y + indexer.getCurrenMaxHeight() + m_font(U' ').region().h;
-                    heightMax = (y - textTL.y);
-                }
-            }
-
-            // カーソルの描画
-            size_t index = indexer.getIndex();
-            if (index == m_cursorPos) {
-                double h = m_font(U' ').region().h;
-                Line(region.pos, region.pos + Vec2{ 0, h }).draw(Palette::Black);
-            }
-
-            if (!indexer.isValid()) {
-                break;
-            }
-        }
-
-        return SizeF{ widthMax, heightMax };
-        });
-
-    if (KeyHome.down()) setCursorPos(0, true);
-    if (KeyEnd.down()) setCursorPos(m_text.size(), true);
-
-    //--------------------------------------------------
     // 枠線の描画
-    if (m_isFocused) {
+    RectF rect{ getPosition(), getSize() };
+    if (isFocusing()) {
         rect.drawFrame(1, 2, Palette::Aqua);
     }
     else {
         rect.drawFrame(1, 0, Palette::Gray);
     }
 
+    if (KeyHome.down()) setCursorPos(0, true);
+    if (KeyEnd.down()) setCursorPos(m_text.size(), true);
+
     return rect.mouseOver();
+}
+
+SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
+{
+    double widthMax = 0;
+    double heightMax = 0;
+
+    Vec2 textTL = TEXT_PADDING;
+
+    // 1文字ずつ描画
+    for (TextPoitionIndexer indexer{ textTL, m_text, m_font }; ; indexer.next())
+    {
+        // これから描画する文字の領域
+        const RectF& region = indexer.getRegion();
+
+        // 文字の描画
+        // カーソルの描画のために、文字列が終わった後も1文字分だけループを回す。
+        if (indexer.isValid()) {
+            const String::value_type& c = indexer.getChar();
+            if (c != U'\n' && c != U'\r') {
+                m_font(c).draw(region.pos, Palette::Black);
+                widthMax = Max(widthMax, (region.br().x - textTL.x));
+                heightMax = Max(heightMax, (region.br().y - textTL.y));
+            }
+            else if (c == U'\n') {
+                // 最後に改行文字で終了したときのために、改行後の文字の下端の座標をheightMaxに設定。
+                double y = region.y + indexer.getCurrenMaxHeight() + m_font(U' ').region().h;
+                heightMax = (y - textTL.y);
+            }
+        }
+
+        // カーソルの描画
+        size_t index = indexer.getIndex();
+        if (index == m_cursorPos) {
+            double h = m_font(U' ').region().h;
+            Line(region.pos, region.pos + Vec2{ 0, h }).draw(Palette::Black);
+        }
+
+        if (!indexer.isValid()) {
+            break;
+        }
+    }
+
+    // 内側がマウスオーバーされてたらカーソルの形を変える。
+    if (isMouseOvered){
+        Cursor::RequestStyle(s3d::CursorStyle::IBeam);
+    }
+
+    return SizeF{ widthMax, heightMax };
 }
 
 void SamlUI::TextBox::setCursorPos(size_t pos, bool moveView)
@@ -215,19 +218,4 @@ void SamlUI::TextBox::onClicked()
         }
         index++;
     }
-}
-
-void SamlUI::TextBox::onFocusStart()
-{
-    m_isFocused = true;
-}
-
-void SamlUI::TextBox::onFocusEnd()
-{
-    m_isFocused = false;
-}
-
-void SamlUI::TextBox::onMouseOvering() 
-{
-    Cursor::RequestStyle(s3d::CursorStyle::IBeam);
 }

@@ -16,41 +16,45 @@ ScrollView::ScrollView() :
 
 }
 
-void ScrollView::draw(std::function<s3d::SizeF()> drawInner)
+void ScrollView::draw(std::function<s3d::SizeF(bool)> drawInner, bool isMouseOvered)
 {
     const RectF& rect = getRect();
+
+    // 背景の描画
+    rect.draw(Palette::White);
+
+    // (描画前にスクロールバーの表示判定をしたい)
+    m_horizontalBarState.visible = true;
+    m_verticalBarState.visible = true;
+    RectF innerRegion{ rect.pos, rect.w - (m_verticalBarState.visible ? m_verticalBarThickness : 0), rect.h - (m_horizontalBarState.visible ? m_horizontalBarThickness : 0) };
+    bool mouseoverBar = innerRegion.mouseOver();
 
     // ステンシル矩形の設定
     RasterizerState rstatePre = Graphics2D::GetRasterizerState();
     RasterizerState rstateScissor = rstatePre;
     rstateScissor.scissorEnable = true;
     Graphics2D::Internal::SetRasterizerState(rstateScissor);
+    Graphics2D::SetScissorRect(innerRegion);
 
     // 内側を描画
     SizeF innerSize;
     {
         Vec2 offset{ m_horizontalBarState.pos * m_horizontalBarState.actualSize, m_verticalBarState.pos * m_verticalBarState.actualSize };
         Transformer2D transformer{ Mat3x2::Translate(-offset) };
-        innerSize = drawInner();
+        innerSize = drawInner(mouseoverBar);
     }
 
-    // スクロールバーの描画判定と、テキスト描画領域の計算
-    m_horizontalBarState.visible = true;
-    m_verticalBarState.visible = true;
-    RectF textRegion{ rect.pos, rect.w - (m_verticalBarState.visible ? m_verticalBarThickness : 0), rect.h - (m_horizontalBarState.visible ? m_horizontalBarThickness : 0) };
-
     // ステンシル矩形の設定を戻す
-    Graphics2D::SetScissorRect(textRegion);
     Graphics2D::Internal::SetRasterizerState(rstatePre);
 
     // スクロールバーの状態の設定
-    if (textRegion.w >= 0.0001 && textRegion.h >= 0.0001)
+    if (innerRegion.w >= 0.0001 && innerRegion.h >= 0.0001)
     {
         m_horizontalBarState.actualSize = innerSize.x;
         m_verticalBarState.actualSize = innerSize.y;
 
-        m_horizontalBarState.length = innerSize.x > 1.0 ? Min(textRegion.w / innerSize.x, 1.0) : 1.0;
-        m_verticalBarState.length = innerSize.y > 1.0 ? Min(textRegion.h / innerSize.y, 1.0) : 1.0;
+        m_horizontalBarState.length = innerSize.x > 1.0 ? Min(innerRegion.w / innerSize.x, 1.0) : 1.0;
+        m_verticalBarState.length = innerSize.y > 1.0 ? Min(innerRegion.h / innerSize.y, 1.0) : 1.0;
 
         double wheel = WHEEL_SPEED * Mouse::Wheel();
         m_verticalBarState.pos += wheel / m_verticalBarState.actualSize;
