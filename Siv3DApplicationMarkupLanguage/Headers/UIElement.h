@@ -44,6 +44,7 @@ namespace s3d::SamlUI
         virtual void onFocusing() {}
         virtual void onFocusEnd() {}
 
+        // マウスオーバー (最も前面のUIのみがマウスオーバー状態になる)
         virtual void onMouseOverStart() {}
         virtual void onMouseOvering() {}
         virtual void onMouseOverEnd() {}

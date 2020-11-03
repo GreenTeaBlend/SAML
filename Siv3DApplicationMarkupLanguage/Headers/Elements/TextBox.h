@@ -13,7 +13,7 @@ namespace s3d::SamlUI
             const Font& m_font;
 
             // 全体の左上座標
-            const Vec2 m_pos;
+            const Vec2 m_tlPos;
             // 文字の高さ
             const double m_height;
 
@@ -42,8 +42,9 @@ namespace s3d::SamlUI
 
         struct ScrollBarState {
             bool visible;
-            double length; // 全体に占めるバーの長さ。 0~1
+            double length; // 全体に占める表示範囲の長さ。 0~1
             double pos; // バーの左(上)の位置。 0~1
+            double actualSize; // 表示範囲外も含め、パネル全体の長さ (表示範囲=length*actualSize)
         };
 
         // スクロールバーの幅
@@ -61,11 +62,11 @@ namespace s3d::SamlUI
         ScrollBarVisibility m_isHorizontalScrollBarVisibility;
         ScrollBarVisibility m_isVerticalScrollBarVisibility;
 
-        // スクロールバーを表示するか判定する
-        void previewScrollBar(ScrollBarState* horizontal, ScrollBarState* vertical);
+        ScrollBarState m_horizontalBarState;
+        ScrollBarState m_verticalBarState;
 
         // スクロールバー描画
-        void drawScrollBar(const ScrollBarState& horizontal, const ScrollBarState& vertical);
+        void drawScrollBar();
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
