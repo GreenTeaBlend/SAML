@@ -15,10 +15,10 @@ namespace s3d::SamlUI
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
         const Vec2& getPosition() const { return m_position; }
-        void getPosition(const Vec2& position) { m_position = position; }
+        virtual void setPosition(const Vec2& position) { m_position = position; }
 
         const Vec2& getSize() const { return m_size; }
-        void getSize(const Vec2& size) { m_size = size; }
+        virtual void setSize(const Vec2& size) { m_size = size; }
 
         RectElement();
     };

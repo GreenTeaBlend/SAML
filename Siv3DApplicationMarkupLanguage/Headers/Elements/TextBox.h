@@ -1,7 +1,7 @@
 #pragma once
 #include <Siv3D.hpp>
 #include "RectElement.h"
-#include "Contants.h"
+#include "Components/ScrollView.h"
 
 namespace s3d::SamlUI
 {
@@ -40,17 +40,6 @@ namespace s3d::SamlUI
             double getCurrenMaxHeight() const { return m_currenMaxHeight; }
         };
 
-        struct ScrollBarState {
-            bool visible;
-            double length; // 全体に占める表示範囲の長さ。 0~1
-            double pos; // バーの左(上)の位置。 0~1
-            double actualSize; // 表示範囲外も含め、パネル全体の長さ (表示範囲=length*actualSize)
-        };
-
-        // スクロールバーの幅
-        double m_horizontalBarThickness = 10.0;
-        double m_verticalBarThickness = 10.0;
-
         Font m_font;
 
         String m_text;
@@ -59,30 +48,30 @@ namespace s3d::SamlUI
 
         size_t m_cursorPos;
 
-        ScrollBarVisibility m_isHorizontalScrollBarVisibility;
-        ScrollBarVisibility m_isVerticalScrollBarVisibility;
-
-        ScrollBarState m_horizontalBarState;
-        ScrollBarState m_verticalBarState;
-
-        // スクロールバー描画
-        void drawScrollBar();
-
-        // テキストの左上の座標
-        Vec2 getTextTL() const;
+        // スクロールバーコンポーネント
+        std::unique_ptr<ScrollView> m_scrollView;
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
         TextBox();
 
+        virtual void setPosition(const Vec2& pos) override {
+            RectElement::setPosition(pos); 
+            m_scrollView->setRect(RectF{ pos, m_scrollView->getRect().size }); 
+        }
+        virtual void setSize(const Vec2& size) {
+            RectElement::setSize(size);
+            m_scrollView->setRect(RectF{ m_scrollView->getRect().pos, size });
+        }
+
         const String& getText() const { return m_text; }
         void setText(const String& text) { m_text = text; }
 
-        ScrollBarVisibility isHorizontalScrollBarVisibility() const { return m_isHorizontalScrollBarVisibility; }
-        void setHorizontalScrollBarVisibility(ScrollBarVisibility enable) { m_isHorizontalScrollBarVisibility = enable; }
+        ScrollBarVisibility isHorizontalScrollBarVisibility() const { return m_scrollView->getBarVisibility(ScrollBarDirection::Horizontal); }
+        void setHorizontalScrollBarVisibility(ScrollBarVisibility visibility) { m_scrollView->setBarVisibility(ScrollBarDirection::Horizontal, visibility); }
 
-        ScrollBarVisibility isVerticalScrollBarVisibility() const { return m_isVerticalScrollBarVisibility; }
-        void setVerticalScrollBarVisibility(ScrollBarVisibility enable) { m_isVerticalScrollBarVisibility = enable; }
+        ScrollBarVisibility isVerticalScrollBarVisibility() const { return m_scrollView->getBarVisibility(ScrollBarDirection::Vertical); }
+        void setVerticalScrollBarVisibility(ScrollBarVisibility visibility) { m_scrollView->setBarVisibility(ScrollBarDirection::Vertical, visibility); }
 
         // カーソルの位置をセットする。第二引数がtrueの場合、カーソルが表示位置に収まるようスクロールが行われます。
         void setCursorPos(size_t pos, bool moveView);
