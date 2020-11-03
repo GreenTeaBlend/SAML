@@ -4,7 +4,8 @@ using namespace s3d;
 using namespace SamlUI;
 
 namespace {
-    const Vec2 TEXT_PADDING{ 3, 0 };
+    // ‰Eã¶‰º
+    const Vec4 TEXT_PADDING{ 10, 0, 30, 0 };
 }
 
 SamlUI::TextBox::TextPoitionIndexer::TextPoitionIndexer(Vec2 pos, const String& text, const Font& font) :
@@ -107,7 +108,7 @@ SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
     double widthMax = 0;
     double heightMax = 0;
 
-    Vec2 textTL = TEXT_PADDING;
+    Vec2 textTL = TEXT_PADDING.xy();
 
     // 1•¶Žš‚¸‚Â•`‰æ
     for (TextPoitionIndexer indexer{ textTL, m_text, m_font }; ; indexer.next())
@@ -148,7 +149,7 @@ SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
         Cursor::RequestStyle(s3d::CursorStyle::IBeam);
     }
 
-    return SizeF{ widthMax, heightMax };
+    return SizeF{ widthMax, heightMax } + TEXT_PADDING.zw();
 }
 
 void SamlUI::TextBox::setCursorPos(size_t pos, bool moveView)
@@ -157,7 +158,7 @@ void SamlUI::TextBox::setCursorPos(size_t pos, bool moveView)
 
     if (moveView)
     {
-        Vec2 textTL = TEXT_PADDING;
+        Vec2 textTL = TEXT_PADDING.xy();
 
         RectF regionToShow;
         for (TextPoitionIndexer indexer{ textTL, m_text, m_font }; ; indexer.next())
@@ -192,30 +193,21 @@ void SamlUI::TextBox::onClicked()
         return;
     }
 
-    double h = m_font(U' ').region().h;
-    int index = 0;
-    for (auto* c = m_text.c_str(); *c != (String::value_type)0; c++)
+    Vec2 textTL = m_scrollView->getRect().pos + m_scrollView->offset() + TEXT_PADDING.xy();
+    for (TextPoitionIndexer indexer{ textTL, m_text, m_font }; indexer.isValid(); indexer.next())
     {
-        if (*c == U'\n') {
-            charPos.y += h;
-            charPos.x = getPosition().x;
-        }
-        else {
-            RectF charRect = m_font(*c).region(charPos);
-            Vec2 charBr = charRect.br();
-            charPos.x = charBr.x;
-            h = Max(h, charRect.h);
+        RectF charRect = indexer.getRegion();
 
-            if (mousePos.x >= charRect.bl().x && mousePos.x <= charBr.x && mousePos.y <= charBr.y) {
-                if (mousePos.x <= charRect.center().x) {
-                    m_cursorPos = index;
-                }
-                else {
-                    m_cursorPos = index + 1;
-                }
-                break;
+        if (mousePos.x <= charRect.br().x && mousePos.y <= charRect.br().y) {
+            if (mousePos.x <= charRect.center().x) {
+                m_cursorPos = indexer.getIndex();
             }
+            else {
+                m_cursorPos = indexer.getIndex() + 1;
+            }
+            return;
         }
-        index++;
+
+        m_cursorPos = m_text.size();
     }
 }

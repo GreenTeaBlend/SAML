@@ -29,6 +29,11 @@ namespace s3d::SamlUI
         ScrollBarState m_horizontalBarState;
         ScrollBarState m_verticalBarState;
 
+        // ドラッグしているかフラグ
+        Optional<ScrollBarDirection> m_dragging;
+        // ドラッグ開始点(バー全体を1.0とした位置)
+        double m_dragStartPos;
+
         // スクロールバーを含めた全体の領域
         s3d::RectF m_rect;
 
@@ -60,6 +65,11 @@ namespace s3d::SamlUI
                 m_isVerticalScrollBarVisibility = visibility;
             }
         }
+
+        /// <summary>
+        /// 内側のパネルの左上の座標 (getRect().posからの相対座標)
+        /// </summary>
+        Vec2 offset() const;
 
         /// <summary>
         /// 引数の領域が表示位置に収まるようにスクロールする

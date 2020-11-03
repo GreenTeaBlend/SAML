@@ -29,7 +29,8 @@ void Main()
 	SamlUI::SamlController samlEditor{};
 	SamlUI::SamlController samlPreview{};
 
-	String editorXml = U"<TextBox Name=\"textBox\" Size=\"(400, 600)\" Position=\"(0, 0)\"/>";
+	//String editorXml = U"<TextBox Name=\"textBox\" Size=\"(400, 600)\" Position=\"(0, 0)\"/>";
+	String editorXml = U"<TextBox Name=\"textBox\" Size=\"(300, 400)\" Position=\"(50, 100)\"/>";
 
 	samlEditor.parse(editorXml);
 
