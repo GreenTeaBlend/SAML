@@ -18,10 +18,8 @@ SamlUI::TextBox::TextPoitionIndexer::TextPoitionIndexer(Vec2 pos, const String& 
     m_currenMaxHeight(-1.0)
 {
     // 次に描画する文字の領域を取得
-    if (m_index < m_text.size()) {
-        const String::value_type& cNext = m_text.at(m_index);
-        m_currentRegion.size = m_font(cNext).region().size;
-    }
+    const String::value_type& cNext = m_index < m_text.size() ? m_text.at(m_index) : U' ';
+    m_currentRegion.size = m_font(cNext).region().size;
 }
 
 void SamlUI::TextBox::TextPoitionIndexer::next()
@@ -45,10 +43,8 @@ void SamlUI::TextBox::TextPoitionIndexer::next()
     m_index++;
 
     // 次に描画する文字の領域を取得
-    if (m_index < m_text.size()) {
-        const String::value_type& cNext = m_text.at(m_index);
-        m_currentRegion.size = m_font(cNext).region().size;
-    }
+    const String::value_type& cNext = m_index < m_text.size() ? m_text.at(m_index) : U' ';
+    m_currentRegion.size = m_font(cNext).region().size;
 }
 
 SamlUI::TextBox::TextBox() :
@@ -110,7 +106,7 @@ bool SamlUI::TextBox::draw()
     double heightMax = 0;
 
     // 1文字ずつ描画
-    Vec2 textTLPos = rect.pos + TEXT_PADDING - Vec2{ m_horizontalBarState.pos * m_horizontalBarState.actualSize, m_verticalBarState.pos * m_verticalBarState.actualSize };
+    Vec2 textTLPos = getTextTL();
     for (TextPoitionIndexer indexer{ textTLPos, m_text, m_font }; ; indexer.next())
     {
         // これから描画する文字の領域
@@ -172,6 +168,9 @@ bool SamlUI::TextBox::draw()
     // スクロールバーの描画
     drawScrollBar();
 
+    if (KeyHome.down()) setCursorPos(0, true);
+    if (KeyEnd.down()) setCursorPos(m_text.size(), true);
+
     //--------------------------------------------------
     // 枠線の描画
     if (m_isFocused) {
@@ -215,6 +214,53 @@ void SamlUI::TextBox::drawScrollBar()
         hbarSize.y - 2 * PAD)
         .rounded(ROUND)
         .draw(Palette::Gray);
+}
+
+void SamlUI::TextBox::setCursorPos(size_t pos, bool moveView)
+{
+    m_cursorPos = Clamp(pos, size_t(0), m_text.size());
+
+    if (moveView && m_horizontalBarState.actualSize >= 0.0001 && m_verticalBarState.actualSize >= 0.0001)
+    {
+        Vec2 textTL = getTextTL();
+        RectF regionToShow;
+        for (TextPoitionIndexer indexer{ textTL, m_text, m_font }; ; indexer.next())
+        {
+            if (indexer.getIndex() == pos) {
+                regionToShow = indexer.getRegion();
+                break;
+            }
+
+            // m_cursorPosは文字列の外にセットされることはないので、このreturnは通らないはず。
+            if (!indexer.isValid()) {
+                return;
+            }
+        }
+
+        // テキストの描画開始点からの相対位置
+        regionToShow.moveBy(-textTL);
+
+        //--------------------------------------------------
+        // regionToShowが表示領域に入るようにスクロールする。
+
+        // regionToShowの左側が見えるようになるためのバーの位置の最小値。以下、右上下についても同様。
+        double leftRelativePos = regionToShow.x / m_horizontalBarState.actualSize;
+        if (m_horizontalBarState.pos > leftRelativePos) { m_horizontalBarState.pos = leftRelativePos; }
+
+        double rightRelativePos = (regionToShow.x + regionToShow.w) / m_horizontalBarState.actualSize - m_horizontalBarState.length;
+        if (m_horizontalBarState.pos < rightRelativePos) { m_horizontalBarState.pos = rightRelativePos; }
+
+        double topRelativePos = regionToShow.y / m_verticalBarState.actualSize;
+        if (m_verticalBarState.pos > topRelativePos) { m_verticalBarState.pos = topRelativePos; }
+
+        double bottomRelativePos = (regionToShow.y + regionToShow.h) / m_verticalBarState.actualSize - m_verticalBarState.length;
+        if (m_verticalBarState.pos < bottomRelativePos) { m_verticalBarState.pos = bottomRelativePos; }
+    }
+}
+
+Vec2 SamlUI::TextBox::getTextTL() const
+{
+    return getPosition() + TEXT_PADDING - Vec2{ m_horizontalBarState.pos * m_horizontalBarState.actualSize, m_verticalBarState.pos * m_verticalBarState.actualSize };
 }
 
 void SamlUI::TextBox::onClicked()

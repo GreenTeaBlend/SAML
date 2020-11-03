@@ -67,6 +67,9 @@ namespace s3d::SamlUI
 
         // スクロールバー描画
         void drawScrollBar();
+
+        // テキストの左上の座標
+        Vec2 getTextTL() const;
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
@@ -80,6 +83,9 @@ namespace s3d::SamlUI
 
         ScrollBarVisibility isVerticalScrollBarVisibility() const { return m_isVerticalScrollBarVisibility; }
         void setVerticalScrollBarVisibility(ScrollBarVisibility enable) { m_isVerticalScrollBarVisibility = enable; }
+
+        // カーソルの位置をセットする。第二引数がtrueの場合、カーソルが表示位置に収まるようスクロールが行われます。
+        void setCursorPos(size_t pos, bool moveView);
 
         virtual bool draw() override;
 
