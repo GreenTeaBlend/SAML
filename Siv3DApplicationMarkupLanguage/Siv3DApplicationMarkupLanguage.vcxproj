@@ -119,6 +119,7 @@
     <ClCompile Include="Sources\UIElement.cpp" />
     <ClCompile Include="Sources\UIElementTypeInfo.cpp" />
     <ClCompile Include="Sources\Constants.cpp" />
+    <ClCompile Include="Sources\UITextIndexer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\engine\texture\box-shadow\128.png" />
@@ -253,6 +254,7 @@
     <ClInclude Include="Headers\SamlController.h" />
     <ClInclude Include="Headers\UIElement.h" />
     <ClInclude Include="Headers\UIElementTypeInfo.h" />
+    <ClInclude Include="Headers\UITextIndexer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
