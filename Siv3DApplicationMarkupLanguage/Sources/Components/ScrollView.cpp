@@ -4,7 +4,7 @@ using namespace s3d;
 using namespace SamlUI;
 
 namespace {
-    const double WHEEL_SPEED = 15.0;
+    const double WHEEL_SPEED = 20.0;
 }
 
 ScrollView::ScrollView() :

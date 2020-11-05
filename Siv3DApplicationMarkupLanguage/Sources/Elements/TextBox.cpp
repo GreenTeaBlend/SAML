@@ -215,37 +215,29 @@ void SamlUI::TextBox::updateCursor()
 
     // çsì™Ç…à⁄ìÆ
     if (KeyHome.down()) {
-        if (cursorPos == m_text.size()) {
-            if (m_text.size() == 0 || m_text.ends_with(U'\n')) {
-                cursorPos = m_text.size();
-            }
-            else {
-                cursorPos = m_lines.back().index;
-            }
+        size_t lineIndex = getLineIndexOf(m_cursorPos, m_lines);
+        if (lineIndex == m_lines.size()) {
+            cursorPos = m_text.size();
         }
         else {
-            for (LineInfo& line : m_lines)
-            {
-                if (cursorPos < line.index + line.text.size()) {
-                    cursorPos = line.index;
-                    break;
-                }
-            }
+            const LineInfo& line = m_lines[lineIndex];
+            cursorPos = line.index;
         }
     }
 
     // çsññÇ…à⁄ìÆ
     if (KeyEnd.down()) {
-        for (LineInfo& line : m_lines)
-        {
-            if (cursorPos < line.index + line.text.size()) {
-                if (line.text.ends_with(U'\n')) {
-                    cursorPos = line.index + line.text.size() - 1;
-                }
-                else {
-                    cursorPos = line.index + line.text.size();
-                }
-                break;
+        size_t lineIndex = getLineIndexOf(m_cursorPos, m_lines);
+        if (lineIndex == m_lines.size()) {
+            cursorPos = m_text.size();
+        }
+        else {
+            const LineInfo& line = m_lines[lineIndex];
+            if (line.text.ends_with(U'\n')) {
+                cursorPos = line.index + line.text.size() - 1;
+            }
+            else {
+                cursorPos = line.index + line.text.size();
             }
         }
     }
@@ -322,27 +314,28 @@ void SamlUI::TextBox::setText(const String& text)
 
     for (UITextIndexer indexer{ Vec2::Zero(), m_text, m_font }; ; indexer.next())
     {
-        if (indexer.isValid() == false || indexer.currentChar() == U'\n')
-        {
+        if (indexer.isValid() == false) {
             if (currentLine != nullptr) {
                 currentLine->text = m_text.substr(currentLine->index, indexer.currentIndex() - currentLine->index + 1);
-                currentLine = nullptr;
             }
+            return;
+        }
 
-            if (indexer.isValid() == false) {
-                return;
-            }
+        if (currentLine == nullptr)
+        {
+            m_lines.push_back(LineInfo());
+            currentLine = &m_lines.back();
+            currentLine->index = indexer.currentIndex();
+            currentLine->offset = indexer.currentRegion().pos;
+        }
+
+        if (indexer.currentChar() == U'\n')
+        {
+            currentLine->text = m_text.substr(currentLine->index, indexer.currentIndex() - currentLine->index + 1);
+            currentLine = nullptr;
         }
         else
         {
-            if(currentLine == nullptr)
-            {
-                m_lines.push_back(LineInfo());
-                currentLine = &m_lines.back();
-                currentLine->index = indexer.currentIndex();
-                currentLine->offset = indexer.currentRegion().pos;
-            }
-
             currentLine->height = Max(currentLine->height, indexer.currentRegion().h);
         }
     }
