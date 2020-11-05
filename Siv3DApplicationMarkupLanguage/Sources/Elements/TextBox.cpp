@@ -46,15 +46,7 @@ bool SamlUI::TextBox::draw()
     }
 
     // カーソル移動
-    int cursorPos = static_cast<int>(m_cursorPos);
-    if (KeyRight.down()) { cursorPos++; }
-    else if (KeyLeft.down()) { cursorPos--; }
-    else if (KeyHome.down()) { cursorPos = 0; }
-    else if (KeyEnd.down()) { cursorPos = (int)m_text.size(); }
-    cursorPos = static_cast<size_t>(Clamp(cursorPos, 0, (int)m_text.size()));
-    if (m_cursorPos != cursorPos) {
-        setCursorPos(cursorPos, true);
-    }
+    updateCursor();
 
     // スクロールバーと内側の描画
     m_scrollView->draw([&](bool isMouseOvered) {
@@ -126,6 +118,57 @@ SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
     }
 
     return SizeF{ widthMax, heightMax } + TEXT_PADDING.zw();
+}
+
+void SamlUI::TextBox::updateCursor()
+{
+    size_t cursorPos = m_cursorPos;
+
+    // 左右移動
+    if (KeyRight.down()) { cursorPos++; }
+    if (KeyLeft.down()) { cursorPos = cursorPos >= 1 ? cursorPos - 1 : 0; }
+
+    // 行頭に移動
+    if (KeyHome.down()) {
+        if (cursorPos == m_text.size()) {
+            if (m_text.size() == 0 || m_text.ends_with(U'\n')) {
+                cursorPos = m_text.size();
+            }
+            else {
+                cursorPos = m_lines.back().index;
+            }
+        }
+        else {
+            for (LineInfo& line : m_lines)
+            {
+                if (cursorPos < line.index + line.text.size()) {
+                    cursorPos = line.index;
+                    break;
+                }
+            }
+        }
+    }
+
+    // 行末に移動
+    if (KeyEnd.down()) {
+        for (LineInfo& line : m_lines)
+        {
+            if (cursorPos < line.index + line.text.size()) {
+                if (line.text.ends_with(U'\n')) {
+                    cursorPos = line.index + line.text.size() - 1;
+                }
+                else {
+                    cursorPos = line.index + line.text.size();
+                }
+                break;
+            }
+        }
+    }
+
+    cursorPos = Clamp(cursorPos, (size_t)0, m_text.size());
+    if (m_cursorPos != cursorPos) {
+        setCursorPos(cursorPos, true);
+    }
 }
 
 void SamlUI::TextBox::setCursorPos(size_t pos, bool moveView)

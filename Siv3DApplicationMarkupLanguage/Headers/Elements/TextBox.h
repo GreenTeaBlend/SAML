@@ -25,6 +25,8 @@ namespace s3d::SamlUI
 
         // スクロールバーコンポーネント
         std::unique_ptr<ScrollView> m_scrollView;
+        
+        void updateCursor();
 
         // スクロールバーを除いた内側の部分の描画。戻り値は表示領域。
         SizeF drawInner(bool isMouseOvered);
