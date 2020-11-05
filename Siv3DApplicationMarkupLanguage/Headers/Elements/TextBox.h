@@ -7,11 +7,21 @@ namespace s3d::SamlUI
 {
     class TextBox : public RectElement
     {
+        struct LineInfo {
+            String text; // この行の文字列。改行されるなら末尾に改行文字。
+            size_t index; // この行の先頭の文字の、元の文字列における要素番号。
+            Vec2 offset; // 先頭の文字の左上の座標。TextBox::getRect().posからの相対座標。
+            double height; // 行の高さ
+        };
+
         Font m_font;
 
         String m_text;
 
         size_t m_cursorPos;
+
+        // m_textを行ごとにまとめたもの。
+        Array<LineInfo> m_lines;
 
         // スクロールバーコンポーネント
         std::unique_ptr<ScrollView> m_scrollView;
@@ -33,7 +43,8 @@ namespace s3d::SamlUI
         }
 
         const String& getText() const { return m_text; }
-        void setText(const String& text) { m_text = text; }
+        void setText(const String& text);
+        void insertText(const String& text, size_t index);
 
         ScrollBarVisibility isHorizontalScrollBarVisibility() const { return m_scrollView->getBarVisibility(ScrollBarDirection::Horizontal); }
         void setHorizontalScrollBarVisibility(ScrollBarVisibility visibility) { m_scrollView->setBarVisibility(ScrollBarDirection::Horizontal, visibility); }

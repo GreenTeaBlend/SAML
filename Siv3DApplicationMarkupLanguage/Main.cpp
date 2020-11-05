@@ -37,7 +37,7 @@ void Main()
 	uint64 lastIputTime = Time::GetMillisec();
 	bool isTextEditted = false;
 
-	String previewXml = String(U"<Button Position=\"(100, 200)\"/>");
+	String previewXml = U"aaa";// String(U"<Button Position=\"(100, 200)\"/>");
 	std::dynamic_pointer_cast<SamlUI::TextBox>(samlEditor.getElement(U"textBox"))->setText(previewXml);
 	samlPreview.parse(previewXml);
 

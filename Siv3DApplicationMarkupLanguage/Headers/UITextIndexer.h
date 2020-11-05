@@ -18,15 +18,20 @@ namespace s3d::SamlUI
 
         // 現在の文字の描画領域
         RectF m_currentRegion;
-        // 現在の行の文字の高さ最大値 (複数の文字サイズを混合できるようにする)
-        double m_currenMaxHeight;
 
         size_t m_index;
+
+        // 次に描画する文字のsizeを更新
+        void updateSize();
+
     public:
         UITextIndexer(const Vec2& pos, const String& text, const Font& font);
 
-        // 次の文字に移動する。(改行文字などはスキップされる。)
+        // 次の文字に移動する。
         void next();
+
+        // 指定されたIndexになるまで動かす。 index <= currentIndex() の場合は何もしない。
+        void nextUntil(size_t index);
 
         // indexが文字列の外の場合falseとなる。
         bool isValid() const { return m_index < m_text.size(); }
@@ -43,7 +48,7 @@ namespace s3d::SamlUI
         // 現在の文字のフォント (複数のフォントに対応予定)
         const Font& currentFont() const { return m_font; }
 
-        // 現在の行の最大高さ == 次に改行するときのy座標に加算する量
-        double currentHeight() const { return m_currenMaxHeight; }
+        // 現在の行の高さ == 次に改行するときのy座標に加算する量
+        double currentHeight() const { return m_height; }
     };
 }

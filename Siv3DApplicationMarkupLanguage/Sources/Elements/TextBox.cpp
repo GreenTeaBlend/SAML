@@ -12,6 +12,7 @@ namespace {
 SamlUI::TextBox::TextBox() :
     m_font(20),
     m_text(U""),
+    m_lines(),
     m_cursorPos(3),
     m_scrollView(new ScrollView())
 {
@@ -38,14 +39,24 @@ void SamlUI::TextBox::enumratePropertyData(HashTable<String, PropertySetter>* da
 bool SamlUI::TextBox::draw()
 {
     // キーボードからテキストを入力
-    m_cursorPos = TextInput::UpdateText(m_text, m_cursorPos);
+    if (TextInput::GetRawInput().length() != 0) {
+        String text = m_text;
+        m_cursorPos = TextInput::UpdateText(text, m_cursorPos);
+        setText(text);
+    }
 
+    // カーソル移動
     int cursorPos = static_cast<int>(m_cursorPos);
     if (KeyRight.down()) { cursorPos++; }
     else if (KeyLeft.down()) { cursorPos--; }
-    m_cursorPos = static_cast<size_t>(Clamp(cursorPos, 0, (int)m_text.size()));
+    else if (KeyHome.down()) { cursorPos = 0; }
+    else if (KeyEnd.down()) { cursorPos = (int)m_text.size(); }
+    cursorPos = static_cast<size_t>(Clamp(cursorPos, 0, (int)m_text.size()));
+    if (m_cursorPos != cursorPos) {
+        setCursorPos(cursorPos, true);
+    }
 
-    // 描画
+    // スクロールバーと内側の描画
     m_scrollView->draw([&](bool isMouseOvered) {
         return drawInner(isMouseOvered);
         }, isMouseOvered());
@@ -58,9 +69,6 @@ bool SamlUI::TextBox::draw()
     else {
         rect.drawFrame(1, 0, Palette::Gray);
     }
-
-    if (KeyHome.down()) setCursorPos(0, true);
-    if (KeyEnd.down()) setCursorPos(m_text.size(), true);
 
     return rect.mouseOver();
 }
@@ -106,6 +114,12 @@ SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
         }
     }
 
+    // 行のデバッグ表示
+    for (LineInfo& line : m_lines) {
+        String text = line.text.removed(U'\n');
+        m_font(text).region(textTL + line.offset).draw(ColorF(Palette::Green, 0.3));
+    }
+
     // 内側がマウスオーバーされてたらカーソルの形を変える。
     if (isMouseOvered){
         Cursor::RequestStyle(s3d::CursorStyle::IBeam);
@@ -148,26 +162,84 @@ void SamlUI::TextBox::setCursorPos(size_t pos, bool moveView)
 void SamlUI::TextBox::onClicked()
 {
     Vec2 mousePos{ Cursor::Pos() };
-    Vec2 charPos{ getPosition() };
-
-    // クリックした箇所が文字列よりも左か上
-    if (mousePos.x < charPos.x || mousePos.y < charPos.y) {
-        return;
-    }
-
     Vec2 textTL = m_scrollView->getRect().pos + m_scrollView->offset() + TEXT_PADDING.xy();
-    for (UITextIndexer indexer{ textTL, m_text, m_font }; indexer.isValid(); indexer.next())
-    {
-        RectF charRect = indexer.currentRegion();
 
-        if (mousePos.x <= charRect.br().x && mousePos.y <= charRect.br().y) {
+    // 引数の行をクリックしたとして、x座標を参考にクリックした場所を返す関数。
+    auto selectedIndexInLine = [&](const Vec2& lineTL, const String& lineText) {
+        for (UITextIndexer indexer{ lineTL, lineText, m_font }; indexer.isValid(); indexer.next())
+        {
+            RectF charRect = indexer.currentRegion();
+
             if (mousePos.x <= charRect.center().x) {
-                m_cursorPos = indexer.currentIndex();
+                return indexer.currentIndex();
             }
-            else {
-                m_cursorPos = indexer.currentIndex() + 1;
-            }
+        }
+
+        if (lineText.back() == U'\n') {
+            return lineText.size() - 1;
+        }
+        else {
+            return lineText.size();
+        }
+    };
+
+    for (LineInfo& line : m_lines) 
+    {
+        Vec2 lineTL = (textTL + line.offset);
+        if (mousePos.y < lineTL.y + line.height) 
+        {
+            m_cursorPos = line.index + selectedIndexInLine(lineTL, line.text);
             return;
         }
     }
+
+    // 文字列中の最後の行よりもクリック位置が下側の場合、最後の行の中でx座標のみを参考にカーソル位置を決める
+    if (m_text.size() == 0 || m_text.ends_with(U'\n')) {
+        m_cursorPos = m_text.size();
+    }
+    else {
+        auto& line = m_lines.back();
+        Vec2 lineTL = (textTL + line.offset);
+        m_cursorPos = line.index + selectedIndexInLine(lineTL, line.text);
+    }
+}
+
+void SamlUI::TextBox::setText(const String& text)
+{
+    m_text = text;
+    m_lines.clear();
+
+    LineInfo* currentLine = nullptr;
+
+    for (UITextIndexer indexer{ Vec2::Zero(), m_text, m_font }; ; indexer.next())
+    {
+        if (indexer.isValid() == false || indexer.currentChar() == U'\n')
+        {
+            if (currentLine != nullptr) {
+                currentLine->text = m_text.substr(currentLine->index, indexer.currentIndex() - currentLine->index + 1);
+                currentLine = nullptr;
+            }
+
+            if (indexer.isValid() == false) {
+                return;
+            }
+        }
+        else
+        {
+            if(currentLine == nullptr)
+            {
+                m_lines.push_back(LineInfo());
+                currentLine = &m_lines.back();
+                currentLine->index = indexer.currentIndex();
+                currentLine->offset = indexer.currentRegion().pos;
+            }
+
+            currentLine->height = Max(currentLine->height, indexer.currentRegion().h);
+        }
+    }
+}
+
+void SamlUI::TextBox::insertText(const String& text, size_t index)
+{
+
 }
