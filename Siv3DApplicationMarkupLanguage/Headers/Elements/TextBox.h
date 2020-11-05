@@ -7,12 +7,15 @@ namespace s3d::SamlUI
 {
     class TextBox : public RectElement
     {
+    public:
         struct LineInfo {
             String text; // この行の文字列。改行されるなら末尾に改行文字。
             size_t index; // この行の先頭の文字の、元の文字列における要素番号。
             Vec2 offset; // 先頭の文字の左上の座標。TextBox::getRect().posからの相対座標。
             double height; // 行の高さ
         };
+
+    private:
 
         Font m_font;
 

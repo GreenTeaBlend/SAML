@@ -7,6 +7,51 @@ using namespace SamlUI;
 namespace {
     // 右上左下
     const Vec4 TEXT_PADDING{ 10, 0, 30, 0 };
+
+    /// <summary>
+    /// 引数の行をクリックしたとして、x座標を参考にクリックした場所(行頭の文字を0とした番号)を返す
+    /// </summary>
+    /// <param name="mouseX">マウス位置x座標</param>
+    /// <param name="lineTL">mouseXと同じ座標系での、調べたい行の左上の座標</param>
+    size_t getMouseIndexInLine(double mouseX, const Font& font, const Vec2& lineTL, const String& lineText) 
+    {
+        for (UITextIndexer indexer{ lineTL, lineText, font }; indexer.isValid(); indexer.next())
+        {
+            RectF charRect = indexer.currentRegion();
+
+            if (mouseX <= charRect.center().x) {
+                return indexer.currentIndex();
+            }
+        }
+
+        if (lineText.back() == U'\n') {
+            return lineText.size() - 1;
+        }
+        else {
+            return lineText.size();
+        }
+    };
+
+    /// <summary>
+    /// 文字列内での番号 index について、その文字列の行の集合 lines の何番目に属するかを返す。
+    /// </summary>
+    size_t getLineIndexOf(size_t index, const Array<SamlUI::TextBox::LineInfo>& lines)
+    {
+        if (lines.size() == 0) {
+            return 0;
+        }
+
+        for (size_t i = 0; i < lines.size(); ++i)
+        {
+            const auto& line = lines[i];
+            if (index < line.index + line.text.size()) {
+                return i;
+            }
+        }
+
+        // 最後の行が改行文字で終わっているなら、範囲外のカーソルは最後の行の次の行。
+        return lines.back().text.ends_with(U'\n') ? lines.size() : lines.size() - 1;
+    }
 }
 
 SamlUI::TextBox::TextBox() :
@@ -128,6 +173,46 @@ void SamlUI::TextBox::updateCursor()
     if (KeyRight.down()) { cursorPos++; }
     if (KeyLeft.down()) { cursorPos = cursorPos >= 1 ? cursorPos - 1 : 0; }
 
+    // 上の行に移動
+    if (KeyUp.down()) {
+        size_t lineIndex = getLineIndexOf(m_cursorPos, m_lines);
+        if (lineIndex != 0) {
+            // 現在のカーソルのx座標を取得する。
+            double xPos = 0;
+            if (lineIndex != m_lines.size()) {
+                const auto& lineCurrent = m_lines[lineIndex];
+                UITextIndexer indexer{ Vec2::Zero(), lineCurrent.text, m_font };
+                indexer.nextUntil(m_cursorPos - lineCurrent.index);
+                xPos = indexer.currentRegion().x;
+            }
+
+            // 上の行でカーソル位置を取得する。
+            const auto& lineUpper = m_lines[lineIndex - 1];
+            cursorPos = lineUpper.index + getMouseIndexInLine(xPos, m_font, Vec2::Zero(), lineUpper.text);
+        }
+    }
+
+    // 下の行に移動
+    if (KeyDown.down()) {
+        size_t lineIndex = getLineIndexOf(m_cursorPos, m_lines);
+        if (lineIndex + 1 == m_lines.size()) {
+            if (m_text.ends_with(U'\n')) {
+                cursorPos = m_text.size();
+            }
+        }
+        else if (lineIndex + 1 < m_lines.size()) {
+            // 現在のカーソルのx座標を取得する。
+            const auto& lineCurrent = m_lines[lineIndex];
+            UITextIndexer indexer{ Vec2::Zero(), lineCurrent.text, m_font };
+            indexer.nextUntil(m_cursorPos - lineCurrent.index);
+            const double xPos = indexer.currentRegion().x;
+
+            // 下の行でカーソル位置を取得する。
+            const auto& lineUnder = m_lines[lineIndex + 1];
+            cursorPos = lineUnder.index + getMouseIndexInLine(xPos, m_font, Vec2::Zero(), lineUnder.text);
+        }
+    }
+
     // 行頭に移動
     if (KeyHome.down()) {
         if (cursorPos == m_text.size()) {
@@ -207,31 +292,12 @@ void SamlUI::TextBox::onClicked()
     Vec2 mousePos{ Cursor::Pos() };
     Vec2 textTL = m_scrollView->getRect().pos + m_scrollView->offset() + TEXT_PADDING.xy();
 
-    // 引数の行をクリックしたとして、x座標を参考にクリックした場所を返す関数。
-    auto selectedIndexInLine = [&](const Vec2& lineTL, const String& lineText) {
-        for (UITextIndexer indexer{ lineTL, lineText, m_font }; indexer.isValid(); indexer.next())
-        {
-            RectF charRect = indexer.currentRegion();
-
-            if (mousePos.x <= charRect.center().x) {
-                return indexer.currentIndex();
-            }
-        }
-
-        if (lineText.back() == U'\n') {
-            return lineText.size() - 1;
-        }
-        else {
-            return lineText.size();
-        }
-    };
-
     for (LineInfo& line : m_lines) 
     {
         Vec2 lineTL = (textTL + line.offset);
         if (mousePos.y < lineTL.y + line.height) 
         {
-            m_cursorPos = line.index + selectedIndexInLine(lineTL, line.text);
+            m_cursorPos = line.index + getMouseIndexInLine(mousePos.x, m_font, lineTL, line.text);
             return;
         }
     }
@@ -243,7 +309,7 @@ void SamlUI::TextBox::onClicked()
     else {
         auto& line = m_lines.back();
         Vec2 lineTL = (textTL + line.offset);
-        m_cursorPos = line.index + selectedIndexInLine(lineTL, line.text);
+        m_cursorPos = line.index + getMouseIndexInLine(mousePos.x, m_font, lineTL, line.text);
     }
 }
 
