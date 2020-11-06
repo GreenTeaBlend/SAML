@@ -13,7 +13,7 @@ namespace {
     /// </summary>
     /// <param name="mouseX">マウス位置x座標</param>
     /// <param name="lineTL">mouseXと同じ座標系での、調べたい行の左上の座標</param>
-    size_t getMouseIndexInLine(double mouseX, const Font& font, const Vec2& lineTL, const String& lineText) 
+    size_t calcCursorPosInLine(double mouseX, const Font& font, const Vec2& lineTL, const String& lineText)
     {
         for (UITextIndexer indexer{ lineTL, lineText, font }; indexer.isValid(); indexer.next())
         {
@@ -29,6 +29,33 @@ namespace {
         }
         else {
             return lineText.size();
+        }
+    };
+
+    /// <summary>
+    /// 引数の行をクリックしたとして、x座標を参考にクリックした場所(行頭の文字を0とした番号)を返す
+    /// </summary>
+    /// <param name="mouseX">マウス位置x座標</param>
+    /// <param name="lineTL">mouseXと同じ座標系での、調べたい行の左上の座標</param>
+    size_t calcCursorPos(const Vec2& textTL, const Vec2& mousePos, const Font& font, const Array<s3d::SamlUI::TextBox::LineInfo>& lines)
+    {
+        for (const auto& line : lines)
+        {
+            Vec2 lineTL = (textTL + line.offset);
+            if (mousePos.y < lineTL.y + line.height)
+            {
+                return line.index + calcCursorPosInLine(mousePos.x, font, lineTL, line.text);
+            }
+        }
+
+        // 文字列中の最後の行よりもクリック位置が下側の場合、最後の行の中でx座標のみを参考にカーソル位置を決める
+        if (lines.size() == 0 || lines.back().text.ends_with(U'\n')) {
+            return lines.size() == 0 ? 0 : lines.back().index + lines.back().text.size();
+        }
+        else {
+            auto& line = lines.back();
+            Vec2 lineTL = (textTL + line.offset);
+            return line.index + calcCursorPosInLine(mousePos.x, font, lineTL, line.text);
         }
     };
 
@@ -59,7 +86,8 @@ SamlUI::TextBox::TextBox() :
     m_text(U""),
     m_lines(),
     m_cursorPos(3),
-    m_scrollView(new ScrollView())
+    m_scrollView(new ScrollView()),
+    m_selectRange()
 {
 
 }
@@ -92,6 +120,8 @@ bool SamlUI::TextBox::draw()
 
     // カーソル移動
     updateCursor();
+
+    updateMouse();
 
     // スクロールバーと内側の描画
     m_scrollView->draw([&](bool isMouseOvered) {
@@ -151,11 +181,14 @@ SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
         }
     }
 
-    // 行のデバッグ表示
-    for (LineInfo& line : m_lines) {
-        String text = line.text.removed(U'\n');
-        m_font(text).region(textTL + line.offset).draw(ColorF(Palette::Green, 0.3));
+    if (!m_selectRange.has_value()) {
+        m_selectRange = IndexRange();
     }
+    m_selectRange->start = 1;
+    m_selectRange->end = m_text.size() - 1;
+
+    // 選択領域の描画
+    drawSelection();
 
     // 内側がマウスオーバーされてたらカーソルの形を変える。
     if (isMouseOvered){
@@ -163,6 +196,67 @@ SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
     }
 
     return SizeF{ widthMax, heightMax } + TEXT_PADDING.zw();
+}
+
+void SamlUI::TextBox::drawSelection()
+{
+    m_selectRange->start = Clamp(m_selectRange->start, (size_t)0, m_text.size());
+    m_selectRange->end = Clamp(m_selectRange->end, (size_t)0, m_text.size());
+
+    if (m_selectRange->start >= m_selectRange->end) {
+        return;
+    }
+
+    const ColorF color = ColorF(Palette::Green, 0.3);
+    const Vec2 textTL = TEXT_PADDING.xy();
+    const size_t start = m_selectRange->start;
+    const size_t end = m_selectRange->end;
+
+    /// <summary>
+    /// 引数の行における選択の矩形を描画する。
+    /// </summary>
+    /// <param name="start">選択範囲開始番号(m_text内での番号)</param>
+    /// <param name="end">選択範囲終了番号(m_text内での番号)</param>
+    static const auto drawLineSelection = [&](const LineInfo line)
+    {
+        String text = line.text/*.removed(U'\n')*/;
+
+        // 末尾が改行文字ならスペースに置換する。
+        if (text.ends_with(U'\n')) {
+            text = text.replaced(U'\n', U' ');
+        }
+
+        if (start >= line.index + text.size() || end <= line.index) {
+            return;
+        }
+
+        // 矩形の左端の座標
+        double left = textTL.x + line.offset.x;
+        if (start > line.index) {
+            String textSubstr = text.substr(0, start - line.index);
+            left += m_font(textSubstr).region().br().x;
+        }
+
+        // 矩形の右端の座標
+        double right = textTL.x;
+        if (end < line.index + text.size()) {
+            String textSubstr = text.substr(0, end - line.index);
+            right += m_font(textSubstr).region().br().x;
+        }
+        else {
+            right += m_font(text).region().br().x;
+        }
+
+        // 描画
+        RectF(left, line.offset.y, right - left, line.height).draw(color);
+    };
+
+    size_t lineStart = getLineIndexOf(start, m_lines);
+    size_t lineEnd = getLineIndexOf(end, m_lines);
+    for (size_t i = lineStart; i <= lineEnd && i != m_lines.size(); ++i) {
+        const LineInfo& line = m_lines[i];
+        drawLineSelection(line);
+    }
 }
 
 void SamlUI::TextBox::updateCursor()
@@ -188,7 +282,7 @@ void SamlUI::TextBox::updateCursor()
 
             // 上の行でカーソル位置を取得する。
             const auto& lineUpper = m_lines[lineIndex - 1];
-            cursorPos = lineUpper.index + getMouseIndexInLine(xPos, m_font, Vec2::Zero(), lineUpper.text);
+            cursorPos = lineUpper.index + calcCursorPosInLine(xPos, m_font, Vec2::Zero(), lineUpper.text);
         }
     }
 
@@ -209,7 +303,7 @@ void SamlUI::TextBox::updateCursor()
 
             // 下の行でカーソル位置を取得する。
             const auto& lineUnder = m_lines[lineIndex + 1];
-            cursorPos = lineUnder.index + getMouseIndexInLine(xPos, m_font, Vec2::Zero(), lineUnder.text);
+            cursorPos = lineUnder.index + calcCursorPosInLine(xPos, m_font, Vec2::Zero(), lineUnder.text);
         }
     }
 
@@ -279,29 +373,18 @@ void SamlUI::TextBox::setCursorPos(size_t pos, bool moveView)
     }
 }
 
-void SamlUI::TextBox::onClicked()
+// マウス関連の更新処理
+void SamlUI::TextBox::updateMouse()
 {
     Vec2 mousePos{ Cursor::Pos() };
-    Vec2 textTL = m_scrollView->getRect().pos + m_scrollView->offset() + TEXT_PADDING.xy();
 
-    for (LineInfo& line : m_lines) 
+    //--------------------------------------------------
+    // クリック
+    if (isMouseOvered() && MouseL.down())
     {
-        Vec2 lineTL = (textTL + line.offset);
-        if (mousePos.y < lineTL.y + line.height) 
-        {
-            m_cursorPos = line.index + getMouseIndexInLine(mousePos.x, m_font, lineTL, line.text);
-            return;
-        }
-    }
+        Vec2 textTL = m_scrollView->getRect().pos + m_scrollView->offset() + TEXT_PADDING.xy();
 
-    // 文字列中の最後の行よりもクリック位置が下側の場合、最後の行の中でx座標のみを参考にカーソル位置を決める
-    if (m_text.size() == 0 || m_text.ends_with(U'\n')) {
-        m_cursorPos = m_text.size();
-    }
-    else {
-        auto& line = m_lines.back();
-        Vec2 lineTL = (textTL + line.offset);
-        m_cursorPos = line.index + getMouseIndexInLine(mousePos.x, m_font, lineTL, line.text);
+        m_cursorPos = calcCursorPos(textTL, mousePos, m_font, m_lines);
     }
 }
 

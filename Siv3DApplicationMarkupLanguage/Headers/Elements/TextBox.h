@@ -15,6 +15,12 @@ namespace s3d::SamlUI
             double height; // 行の高さ
         };
 
+        // 文字の選択範囲
+        struct IndexRange {
+            size_t start;
+            size_t end;
+        };
+
     private:
 
         Font m_font;
@@ -28,11 +34,20 @@ namespace s3d::SamlUI
 
         // スクロールバーコンポーネント
         std::unique_ptr<ScrollView> m_scrollView;
-        
+
+        // 文字の選択範囲
+        Optional<IndexRange> m_selectRange;
+
+        // マウス関連の更新処理
+        void updateMouse();
+        // カーソル関連の更新処理
         void updateCursor();
 
         // スクロールバーを除いた内側の部分の描画。戻り値は表示領域。
         SizeF drawInner(bool isMouseOvered);
+
+        // 選択領域の描画
+        void drawSelection();
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
@@ -61,7 +76,5 @@ namespace s3d::SamlUI
         void setCursorPos(size_t pos, bool moveView);
 
         virtual bool draw() override;
-
-        virtual void onClicked() override;
     };
 }
