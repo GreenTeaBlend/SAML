@@ -18,7 +18,7 @@ namespace s3d::SamlUI
         // •¶Žš‚Ì‘I‘ð”ÍˆÍ
         struct IndexRange {
             size_t start;
-            size_t end;
+            size_t current;
         };
 
     private:

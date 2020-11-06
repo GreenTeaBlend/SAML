@@ -181,12 +181,6 @@ SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
         }
     }
 
-    if (!m_selectRange.has_value()) {
-        m_selectRange = IndexRange();
-    }
-    m_selectRange->start = 1;
-    m_selectRange->end = m_text.size() - 1;
-
     // 選択領域の描画
     drawSelection();
 
@@ -200,17 +194,21 @@ SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
 
 void SamlUI::TextBox::drawSelection()
 {
-    m_selectRange->start = Clamp(m_selectRange->start, (size_t)0, m_text.size());
-    m_selectRange->end = Clamp(m_selectRange->end, (size_t)0, m_text.size());
+    if (!m_selectRange.has_value()) {
+        return;
+    }
 
-    if (m_selectRange->start >= m_selectRange->end) {
+    m_selectRange->start = Clamp(m_selectRange->start, (size_t)0, m_text.size());
+    m_selectRange->current = Clamp(m_selectRange->current, (size_t)0, m_text.size());
+
+    if (m_selectRange->start == m_selectRange->current) {
         return;
     }
 
     const ColorF color = ColorF(Palette::Green, 0.3);
     const Vec2 textTL = TEXT_PADDING.xy();
-    const size_t start = m_selectRange->start;
-    const size_t end = m_selectRange->end;
+    const size_t start = Min(m_selectRange->start, m_selectRange->current);
+    const size_t end = Max(m_selectRange->start, m_selectRange->current);
 
     /// <summary>
     /// 引数の行における選択の矩形を描画する。
@@ -380,11 +378,30 @@ void SamlUI::TextBox::updateMouse()
 
     //--------------------------------------------------
     // クリック
-    if (isMouseOvered() && MouseL.down())
+    if (MouseL.pressed()) 
     {
         Vec2 textTL = m_scrollView->getRect().pos + m_scrollView->offset() + TEXT_PADDING.xy();
+        size_t index = calcCursorPos(textTL, mousePos, m_font, m_lines);
 
-        m_cursorPos = calcCursorPos(textTL, mousePos, m_font, m_lines);
+        // テキストボックスでクリック、もしくはドラッグ開始した → 範囲選択開始
+        if (isMouseOvered() && MouseL.down())
+        {
+            m_selectRange = IndexRange();
+            m_selectRange->start = index;
+            m_selectRange->current = index;
+        }
+
+        // テキストボックス上でドラッグを開始した場合、ドラッグしている限りは選択範囲を更新する。
+        if (m_selectRange.has_value()) {
+            // カーソル位置の更新
+            m_cursorPos = index;
+
+            m_selectRange->current = index;
+        }
+    }
+    else if(m_selectRange.has_value())
+    {
+        m_selectRange = Optional<IndexRange>();
     }
 }
 
