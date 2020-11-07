@@ -16,62 +16,47 @@ UIPanel::UIPanel():
 	}
 }
 
-UIPanel* UIPanel::create(String xml)
+std::shared_ptr<UIPanel> UIPanel::create(String xml, String* error)
 {
+	auto panel = std::shared_ptr<UIPanel>(new UIPanel);
+
+	XMLReader reader{};
+	if (reader.open(s3d::Arg::code_<s3d::String>(xml)) == false) {
+		if (error != nullptr) { *error = U"Invalid xml format."; }
+		return nullptr;
+	}
+
+	try 
+	{
+		panel->m_rootElement = panel->createElement(reader);
+
+		if (reader.nextSibling().isNull() == false) {
+			// Root要素は2つ目以降は無視する。(WPFと同じ仕様)
+			// 複数書いていたら何か警告を出すようにしたい。
+		}
+
+		return panel;
+	}
+	catch (std::exception ex)
+	{
+		// c++例外
+		if (error != nullptr) { *error = Unicode::Widen(std::string(ex.what())); }
+	}
+	catch (const Error& ex)
+	{
+		// s3d例外
+		if (error != nullptr) { *error = ex.what(); }
+	}
+	catch (...)
+	{
+		// その他の例外
+		if (error != nullptr) { *error = U"Unexpected exception while parsing the xml."; }
+	}
+
 	return nullptr;
-	//auto* panel = new UIPanel();
-	//m_elements.clear();
-
-	//XMLReader reader{};
-	//if (reader.open(s3d::Arg::code_<s3d::String>(xml)) == false) {
-	//	m_error = U"Invalid xml format.";
-	//	return;
-	//}
-
-	//try 
-	//{
-	//	// reader(root1番目)を読み込む。
-	//	if (parseXmlElement(&reader) == false) {
-	//		m_error = U"Invalid root element.";
-	//		return;
-	//	}
-
-	//	// rootにある他の要素も読み込む。
-	//	auto sibling = reader.nextSibling();
-	//	while (true)
-	//	{
-	//		if (parseXmlElement(&sibling)) {
-	//			sibling = sibling.nextSibling();
-	//		}
-	//		else {
-	//			break;
-	//		}
-	//	}
-
-	//	m_isValid = true;
-	//}
-	//catch (std::exception ex)
-	//{
-	//	// c++例外
-	//	m_error = Unicode::Widen(std::string(ex.what()));
-	//	m_elements.clear();
-	//}
-	//catch (const Error& ex)
-	//{
-	//	// s3d例外
-	//	m_error = ex.what();
-	//	m_elements.clear();
-	//}
-	//catch (...)
-	//{
-	//	// その他の例外 (c?)
-	//	m_error = U"Unexpected exception while parsing the xml.";
-	//	m_elements.clear();
-	//}
-
 }
-/*
-bool SamlController::parseXmlElement(XMLElement* xmlElement)
+
+bool UIPanel::parseXmlElement(XMLElement* xmlElement)
 {
 	if (xmlElement->isNull()) 
 	{
@@ -94,11 +79,12 @@ bool SamlController::parseXmlElement(XMLElement* xmlElement)
 	return true;
 }
 
-std::shared_ptr<UIElement> SamlController::createElement(const XMLElement& xmlElement)
+std::shared_ptr<UIElement> UIPanel::createElement(const XMLElement& xmlElement)
 {
 	String className = xmlElement.name();
 
-	std::shared_ptr<UIElement> uiElement = UIElement::create(className);
+	std::shared_ptr<UIElement> uiElement = UIElement::create(className, *this);
+	m_elements.push_back(uiElement);
 
 	for (auto& attrPair : xmlElement.attributes())
 	{
@@ -112,9 +98,16 @@ std::shared_ptr<UIElement> SamlController::createElement(const XMLElement& xmlEl
 		}
 	}
 
+	// 子要素を再帰的に生成
+	XMLElement childXml = xmlElement.firstChild();
+	while (!childXml.isNull()) {
+		auto childUI = createElement(childXml);
+		childXml = childXml.nextSibling();
+	}
+
 	return uiElement;
 }
-*/
+
 
 void UIPanel::drawUpdate()
 {

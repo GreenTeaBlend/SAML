@@ -15,11 +15,6 @@ namespace s3d::SamlUI
         Array<std::shared_ptr<UIElement>> m_elements;
 
         std::shared_ptr<UIElement> m_rootElement;
-
-        //// 引数のxmlElementをUIElementとしてParseする。isNull()==trueならfalseを返す。
-        //bool parseXmlElement(XMLElement* xmlElement);
-        //std::shared_ptr<UIElement> createElement(const XMLElement& xmlElement);
-
         // マウスオーバーしている要素 (最前面のもの)
         std::shared_ptr<UIElement> m_mouseOveredElement;
 
@@ -28,6 +23,12 @@ namespace s3d::SamlUI
 
         // 識別子付きのUIElement
         s3d::HashTable<String, std::shared_ptr<UIElement>> m_namedElements;
+
+        // 引数のxmlElementをUIElementとしてParseする。isNull()==trueならfalseを返す。
+        bool parseXmlElement(XMLElement* xmlElement);
+
+        std::shared_ptr<UIElement> createElement(const XMLElement& xmlElement);
+
 
         UIPanel(const UIPanel&) = delete;
         const UIPanel& operator=(const UIPanel&) = delete;
@@ -40,9 +41,9 @@ namespace s3d::SamlUI
         /// </summary>
         /// <typeparam name="T">UIElement</typeparam>
         template <class T>
-        static UIPanel* create()
+        static std::shared_ptr<UIPanel> create()
         {
-            auto* panel = new UIPanel();
+            auto panel = std::shared_ptr<UIPanel>(new UIPanel);
             panel->m_rootElement = std::shared_ptr<UIElement>(new T(*panel));
             panel->m_elements.push_back(panel->m_rootElement);
             return panel;
@@ -51,7 +52,8 @@ namespace s3d::SamlUI
         /// <summary>
         /// XMLコードをもとにUIElementを生成する。
         /// </summary>
-        static UIPanel* create(String xml);
+        /// <param name="error">失敗時のエラー内容</param>
+        static std::shared_ptr<UIPanel> create(String xml, String* error = nullptr);
 
         /// <summary>
         /// NameAttributeが設定されているUIElementを取得する。

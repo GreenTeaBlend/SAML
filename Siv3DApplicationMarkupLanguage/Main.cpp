@@ -17,21 +17,18 @@ void Main()
 	// 大きさ 60 のフォントを用意
 	const Font font(18);
 
-	// 猫のテクスチャを用意
-	const Texture cat(Emoji(U"🐈"));
+	//auto* panel = SamlUI::UIPanel::create<SamlUI::TextBox>();
+	//((SamlUI::TextBox*)panel->getRoot().get())->setSize(Vec2{ 300, 400 });
+	//((SamlUI::TextBox*)panel->getRoot().get())->setPosition(Vec2{ 50, 100 });
+	//((SamlUI::TextBox*)panel->getRoot().get())->setText(U"aiueo");
 
-	// 猫の座標
-	Vec2 catPos(640, 450);
+	String editorXml = U"<TextBox Name=\"textBox\" Size=\"(300, 400)\" Position=\"(50, 100)\"/>";
+	String error{};
+	auto panel = SamlUI::UIPanel::create(editorXml, &error);
 
-	TextBox textBox(font, Vec2(0, 0));
-
-	auto* panel = SamlUI::UIPanel::create<SamlUI::TextBox>();
-	((SamlUI::TextBox*)panel->getRoot().get())->setSize(Vec2{ 300, 400 });
-	((SamlUI::TextBox*)panel->getRoot().get())->setPosition(Vec2{ 50, 100 });
-	((SamlUI::TextBox*)panel->getRoot().get())->setText(U"aiueo");
-
-	//String editorXml = U"<TextBox Name=\"textBox\" Size=\"(300, 400)\" Position=\"(50, 100)\"/>";
-	//auto* panel = SamlUI::UIPanel::create<SamlUI::TextBox>(editorXml);
+	if (panel != nullptr) {
+		((SamlUI::TextBox*)panel->getRoot().get())->setText(U"aiueo");
+	}
 
 	//samlEditor.parse(editorXml);
 
@@ -69,6 +66,11 @@ void Main()
 		//	isTextEditted = false;
 		//}
 
-		panel->drawUpdate();
+		if (panel != nullptr) {
+			panel->drawUpdate();
+		}
+		else {
+			font(error).drawAt(Scene::Center(), Palette::Black);
+		}
 	}
 }
