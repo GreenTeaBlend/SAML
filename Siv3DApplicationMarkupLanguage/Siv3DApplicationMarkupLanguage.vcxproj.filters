@@ -126,7 +126,7 @@
     <ClCompile Include="Sources\UITextIndexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Controller.cpp">
+    <ClCompile Include="Sources\UIPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -427,7 +427,7 @@
     <ClInclude Include="Headers\UITextIndexer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Controller.h">
+    <ClInclude Include="Headers\UIPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

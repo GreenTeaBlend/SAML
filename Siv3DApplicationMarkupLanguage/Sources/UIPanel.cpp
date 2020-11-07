@@ -1,4 +1,4 @@
-#include "Controller.h"
+#include "UIPanel.h"
 #include "UIElement.h"
 
 #include "Elements/Button.h"
@@ -54,29 +54,6 @@ std::shared_ptr<UIPanel> UIPanel::create(String xml, String* error)
 	}
 
 	return nullptr;
-}
-
-bool UIPanel::parseXmlElement(XMLElement* xmlElement)
-{
-	if (xmlElement->isNull()) 
-	{
-		return false;
-	}
-
-	m_elements.push_back(createElement(*xmlElement));
-
-	XMLElement child = xmlElement->firstChild();
-	while (true) 
-	{
-		if (parseXmlElement(&child)) {
-			child = child.nextSibling();
-		}
-		else {
-			break;
-		}
-	}
-
-	return true;
 }
 
 std::shared_ptr<UIElement> UIPanel::createElement(const XMLElement& xmlElement)

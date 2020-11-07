@@ -2,7 +2,7 @@
 # include <Siv3D.hpp> // OpenSiv3D v0.4.3
 #include <fstream>
 
-#include "Controller.h"
+#include "UIPanel.h"
 #include "UIElement.h"
 #include "Elements/TextBox.h"
 using namespace s3d;
@@ -18,7 +18,7 @@ void Main()
 	const Font font(18);
 
 	auto panel = SamlUI::UIPanel::create<SamlUI::TextBox>();
-	auto textBox = panel->getRoot<SamlUI::TextBox>();
+	auto* textBox = dynamic_cast<SamlUI::TextBox*>(panel->getRoot().get());
 	textBox->setSize(Vec2{ 300, 400 });
 	textBox->setPosition(Vec2{ 50, 100 });
 	textBox->setText(U"aiueo");
@@ -43,7 +43,7 @@ void Main()
 		// 最後の文字入力から0.5秒以上経過したら、プレビューのPanelを再生成する。
 		if (isTextEditted && Time::GetMillisec() - lastIputTime > 500)
 		{
-			String xml = panel->getRoot<SamlUI::TextBox>()->getText();
+			String xml = textBox->getText();
 			previewPanel = SamlUI::UIPanel::create(xml, &previewError);
 			isTextEditted = false;
 		}

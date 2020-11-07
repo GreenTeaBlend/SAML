@@ -6,7 +6,7 @@ namespace s3d::SamlUI
     class UIElement;
 
     /// <summary>
-    /// UIElementインスタンスを保持するクラス。
+    /// UIElementインスタンスを保持するManagerクラス。
     /// </summary>
     class UIPanel
     {
@@ -14,6 +14,7 @@ namespace s3d::SamlUI
         Array<std::shared_ptr<UIElement>> m_elements;
 
         std::shared_ptr<UIElement> m_rootElement;
+
         // マウスオーバーしている要素 (最前面のもの)
         std::shared_ptr<UIElement> m_mouseOveredElement;
 
@@ -23,11 +24,7 @@ namespace s3d::SamlUI
         // 識別子付きのUIElement
         s3d::HashTable<String, std::shared_ptr<UIElement>> m_namedElements;
 
-        // 引数のxmlElementをUIElementとしてParseする。isNull()==trueならfalseを返す。
-        bool parseXmlElement(XMLElement* xmlElement);
-
         std::shared_ptr<UIElement> createElement(const XMLElement& xmlElement);
-
 
         UIPanel(const UIPanel&) = delete;
         const UIPanel& operator=(const UIPanel&) = delete;
@@ -61,13 +58,6 @@ namespace s3d::SamlUI
             auto it = m_namedElements.find(name);
             return it != m_namedElements.end() ? it->second : nullptr;
         }
-
-        /// <summary>
-        /// ルート要素を取得する。
-        /// </summary>
-        /// <typeparam name="T">この型にdynamic_castして返す</typeparam>
-        template<class T>
-        std::shared_ptr<T> getRoot() const { return std::dynamic_pointer_cast<T>(m_rootElement); }
 
         /// <summary>
         /// ルート要素を取得する。
