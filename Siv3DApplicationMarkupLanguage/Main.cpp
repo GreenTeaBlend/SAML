@@ -17,60 +17,44 @@ void Main()
 	// 大きさ 60 のフォントを用意
 	const Font font(18);
 
-	//auto* panel = SamlUI::UIPanel::create<SamlUI::TextBox>();
-	//((SamlUI::TextBox*)panel->getRoot().get())->setSize(Vec2{ 300, 400 });
-	//((SamlUI::TextBox*)panel->getRoot().get())->setPosition(Vec2{ 50, 100 });
-	//((SamlUI::TextBox*)panel->getRoot().get())->setText(U"aiueo");
+	auto panel = SamlUI::UIPanel::create<SamlUI::TextBox>();
+	auto textBox = panel->getRoot<SamlUI::TextBox>();
+	textBox->setSize(Vec2{ 300, 400 });
+	textBox->setPosition(Vec2{ 50, 100 });
+	textBox->setText(U"aiueo");
 
-	String editorXml = U"<TextBox Name=\"textBox\" Size=\"(300, 400)\" Position=\"(50, 100)\"/>";
-	String error{};
-	auto panel = SamlUI::UIPanel::create(editorXml, &error);
+	uint64 lastIputTime = Time::GetMillisec();
+	bool isTextEditted = false;
 
-	if (panel != nullptr) {
-		((SamlUI::TextBox*)panel->getRoot().get())->setText(U"aiueo");
-	}
-
-	//samlEditor.parse(editorXml);
-
-	//uint64 lastIputTime = Time::GetMillisec();
-	//bool isTextEditted = false;
-
-	//String previewXml = U"aaa";// String(U"<Button Position=\"(100, 200)\"/>");
-	//std::dynamic_pointer_cast<SamlUI::TextBox>(samlEditor.getElement(U"textBox"))->setText(previewXml);
-	//samlPreview.parse(previewXml);
+	std::shared_ptr<SamlUI::UIPanel> previewPanel;
+	String previewError{};
 
 	while (System::Update())
 	{
-		//samlEditor.draw();
+		// エディタの描画
+		panel->drawUpdate();
 
-		//if (samlPreview.isValid()) {
-		//	Transformer2D transformer{ Mat3x2::Translate(Vec2(400, 0)), true };
-		//	samlPreview.draw();
-		//}
-		//else {
-		//	font(samlPreview.getError()).drawAt(Scene::Center(), Palette::Black);
-		//}
+		if (TextInput::GetRawInput().length() != 0)
+		{
+			lastIputTime = Time::GetMicrosec();
+			isTextEditted = true;
+		}
 
-		//String text{};
-		//if (TextInput::UpdateText(text, 0) != 0 || KeyBackspace.pressed())
-		//{
-		//	lastIputTime = Time::GetMicrosec();
-		//	isTextEditted = true;
-		//}
+		// 最後の文字入力から0.5秒以上経過したら、プレビューのPanelを再生成する。
+		if (isTextEditted && Time::GetMillisec() - lastIputTime > 500)
+		{
+			String xml = panel->getRoot<SamlUI::TextBox>()->getText();
+			previewPanel = SamlUI::UIPanel::create(xml, &previewError);
+			isTextEditted = false;
+		}
 
-		//if (isTextEditted && Time::GetMillisec() - lastIputTime > 500)
-		//{
-		//	String xml = std::dynamic_pointer_cast<SamlUI::TextBox>(samlEditor.getElement(U"textBox"))->getText();
-		//	samlPreview.parse(xml);
-
-		//	isTextEditted = false;
-		//}
-
-		if (panel != nullptr) {
-			panel->drawUpdate();
+		// プレビューの描画
+		if (previewPanel != nullptr) {
+			Transformer2D transformer{ Mat3x2::Translate(Vec2(400, 0)), true };
+			previewPanel->drawUpdate();
 		}
 		else {
-			font(error).drawAt(Scene::Center(), Palette::Black);
+			font(previewError).drawAt(Scene::Center(), Palette::Black);
 		}
 	}
 }

@@ -4,7 +4,6 @@
 namespace s3d::SamlUI
 {
     class UIElement;
-    using SpElement = std::shared_ptr<UIElement>;
 
     /// <summary>
     /// UIElementインスタンスを保持するクラス。
@@ -66,7 +65,13 @@ namespace s3d::SamlUI
         /// <summary>
         /// ルート要素を取得する。
         /// </summary>
-        /// <returns></returns>
+        /// <typeparam name="T">この型にdynamic_castして返す</typeparam>
+        template<class T>
+        std::shared_ptr<T> getRoot() const { return std::dynamic_pointer_cast<T>(m_rootElement); }
+
+        /// <summary>
+        /// ルート要素を取得する。
+        /// </summary>
         const std::shared_ptr<UIElement>& getRoot() const { return m_rootElement; }
 
         // 各UIElementのクリック判定などの処理と描画を行う。
