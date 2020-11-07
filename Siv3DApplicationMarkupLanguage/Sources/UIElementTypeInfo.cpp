@@ -3,7 +3,7 @@
 using namespace s3d;
 using namespace SamlUI;
 
-UIElementTypeInfo::UIElementTypeInfo(std::function<std::shared_ptr<class UIElement>()> factory, HashTable<String, PropertySetter> m_properties) :
+UIElementTypeInfo::UIElementTypeInfo(ElementFactory factory, HashTable<String, PropertySetter> m_properties) :
     m_instanceFactory(factory),
     m_propertySetters(m_properties)
 {

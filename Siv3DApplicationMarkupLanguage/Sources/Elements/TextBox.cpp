@@ -6,7 +6,7 @@ using namespace SamlUI;
 
 namespace {
     // 右上左下
-    const Vec4 TEXT_PADDING{ 10, 0, 30, 0 };
+    const Vec4 TEXT_PADDING{ 6, 0, 30, 0 };
 
     /// <summary>
     /// 引数の行をクリックしたとして、x座標を参考にクリックした場所(行頭の文字を0とした番号)を返す
@@ -81,7 +81,8 @@ namespace {
     }
 }
 
-SamlUI::TextBox::TextBox() :
+SamlUI::TextBox::TextBox(UIPanel& panel) :
+    RectElement(panel),
     m_font(20),
     m_text(U""),
     m_lines(),
@@ -109,14 +110,10 @@ void SamlUI::TextBox::enumratePropertyData(HashTable<String, PropertySetter>* da
     RectElement::enumratePropertyData(datas);
 }
 
-bool SamlUI::TextBox::draw()
+void SamlUI::TextBox::draw()
 {
-    // キーボードからテキストを入力
-    if (TextInput::GetRawInput().length() != 0) {
-        String text = m_text;
-        m_cursorPos = TextInput::UpdateText(text, m_cursorPos);
-        setText(text);
-    }
+    // 文字入力
+    updateText();
 
     // カーソル移動
     updateCursor();
@@ -137,7 +134,7 @@ bool SamlUI::TextBox::draw()
         rect.drawFrame(1, 0, Palette::Gray);
     }
 
-    return rect.mouseOver();
+    return;
 }
 
 SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
@@ -254,6 +251,43 @@ void SamlUI::TextBox::drawSelection()
     for (size_t i = lineStart; i <= lineEnd && i != m_lines.size(); ++i) {
         const LineInfo& line = m_lines[i];
         drawLineSelection(line);
+    }
+}
+
+void SamlUI::TextBox::updateText()
+{
+    // キーボードからテキストを入力
+    String inputText = TextInput::GetRawInput();
+
+    if (inputText.length() != 0)
+    {
+        // 削除文字が入力されたか否か
+        bool deleteCharInputed = false;
+        for (char32_t c : inputText) {
+            if (c == U'\b' || c == (char32_t)127) {
+                deleteCharInputed = true;
+                break;
+            }
+        }
+
+        String text = m_text;
+        if (deleteCharInputed && m_selectRange.has_value() && m_selectRange->length() != 0) {
+            // 削除文字が入力されたら選択範囲を削除する。
+            size_t min = Min(m_selectRange->start, m_selectRange->current);
+            size_t max = Max(m_selectRange->start, m_selectRange->current);
+            text = text.substr(0, min) + text.substr(max);
+            m_cursorPos = min;
+        }
+        else {
+            // 通常の文字の挿入
+            m_cursorPos = TextInput::UpdateText(text, m_cursorPos);
+        }
+        setText(text);
+
+        // 範囲選択をしていた場合は解除する。
+        if (m_selectRange.has_value()) {
+            m_selectRange = Optional<IndexRange>();
+        }
     }
 }
 
@@ -398,10 +432,6 @@ void SamlUI::TextBox::updateMouse()
 
             m_selectRange->current = index;
         }
-    }
-    else if(m_selectRange.has_value())
-    {
-        m_selectRange = Optional<IndexRange>();
     }
 }
 

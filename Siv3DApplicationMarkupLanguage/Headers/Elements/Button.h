@@ -9,14 +9,19 @@ namespace s3d::SamlUI
         String m_text;
 
         Font m_font;
+
+    protected:
+
+        friend class UIElement;
+        friend class UIPanel;
+        Button(UIPanel& panel);
+
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
         const String& getText() const { return m_text; }
         void setText(const String& text) { m_text = text; }
 
-        Button();
-
-        virtual bool draw() override;
+        virtual void draw() override;
     };
 }

@@ -3,7 +3,8 @@
 using namespace s3d;
 using namespace SamlUI;
 
-Button::Button() :
+Button::Button(UIPanel& panel) :
+	RectElement(panel),
     m_text(U"button"),
     m_font(20)
 {
@@ -20,7 +21,7 @@ void Button::enumratePropertyData(HashTable<String, PropertySetter>* datas)
     RectElement::enumratePropertyData(datas);
 }
 
-bool Button::draw()
+void Button::draw()
 {
 	//const int32 labelWidth = font(label).region().w;
 	//const double width = _width.value_or(labelWidth + 40);
@@ -59,5 +60,5 @@ bool Button::draw()
 
     //m_font(m_text).drawAt(rect.center(), Palette::Black);
 
-	return mouseOver;
+	return;
 }

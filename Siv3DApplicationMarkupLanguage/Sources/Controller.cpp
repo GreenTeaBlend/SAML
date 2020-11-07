@@ -1,4 +1,4 @@
-#include "SamlController.h"
+#include "Controller.h"
 #include "UIElement.h"
 
 #include "Elements/Button.h"
@@ -6,71 +6,71 @@
 using namespace s3d;
 using namespace SamlUI;
 
-SamlController::SamlController():
-    m_isValid(false),
-	m_error(U"XML has not been parsed."),
+UIPanel::UIPanel():
 	m_elements(),
 	m_mouseOveredElement(),
 	m_focusingElement()
 {
-
+	if (!UIElement::hasInitialized) {
+		UIElement::initialize();
+	}
 }
 
-void SamlController::parse(String xml)
+UIPanel* UIPanel::create(String xml)
 {
-	m_isValid = false;
-	m_error = U"";
-	m_elements.clear();
+	return nullptr;
+	//auto* panel = new UIPanel();
+	//m_elements.clear();
 
-	XMLReader reader{};
-	if (reader.open(s3d::Arg::code_<s3d::String>(xml)) == false) {
-		m_error = U"Invalid xml format.";
-		return;
-	}
+	//XMLReader reader{};
+	//if (reader.open(s3d::Arg::code_<s3d::String>(xml)) == false) {
+	//	m_error = U"Invalid xml format.";
+	//	return;
+	//}
 
-	try 
-	{
-		// reader(root1番目)を読み込む。
-		if (parseXmlElement(&reader) == false) {
-			m_error = U"Invalid root element.";
-			return;
-		}
+	//try 
+	//{
+	//	// reader(root1番目)を読み込む。
+	//	if (parseXmlElement(&reader) == false) {
+	//		m_error = U"Invalid root element.";
+	//		return;
+	//	}
 
-		// rootにある他の要素も読み込む。
-		auto sibling = reader.nextSibling();
-		while (true)
-		{
-			if (parseXmlElement(&sibling)) {
-				sibling = sibling.nextSibling();
-			}
-			else {
-				break;
-			}
-		}
+	//	// rootにある他の要素も読み込む。
+	//	auto sibling = reader.nextSibling();
+	//	while (true)
+	//	{
+	//		if (parseXmlElement(&sibling)) {
+	//			sibling = sibling.nextSibling();
+	//		}
+	//		else {
+	//			break;
+	//		}
+	//	}
 
-		m_isValid = true;
-	}
-	catch (std::exception ex)
-	{
-		// c++例外
-		m_error = Unicode::Widen(std::string(ex.what()));
-		m_elements.clear();
-	}
-	catch (const Error& ex)
-	{
-		// s3d例外
-		m_error = ex.what();
-		m_elements.clear();
-	}
-	catch (...)
-	{
-		// その他の例外 (c?)
-		m_error = U"Unexpected exception while parsing the xml.";
-		m_elements.clear();
-	}
+	//	m_isValid = true;
+	//}
+	//catch (std::exception ex)
+	//{
+	//	// c++例外
+	//	m_error = Unicode::Widen(std::string(ex.what()));
+	//	m_elements.clear();
+	//}
+	//catch (const Error& ex)
+	//{
+	//	// s3d例外
+	//	m_error = ex.what();
+	//	m_elements.clear();
+	//}
+	//catch (...)
+	//{
+	//	// その他の例外 (c?)
+	//	m_error = U"Unexpected exception while parsing the xml.";
+	//	m_elements.clear();
+	//}
 
 }
-
+/*
 bool SamlController::parseXmlElement(XMLElement* xmlElement)
 {
 	if (xmlElement->isNull()) 
@@ -114,17 +114,15 @@ std::shared_ptr<UIElement> SamlController::createElement(const XMLElement& xmlEl
 
 	return uiElement;
 }
+*/
 
-void SamlController::draw()
+void UIPanel::drawUpdate()
 {
-	if (m_isValid == false) {
-		return;
-	}
-
 	std::shared_ptr<UIElement> mouseOveredElement;
 	for (auto& element : m_elements)
 	{
-		if (element->draw()) {
+		element->draw();
+		/*if ()*/ {
 			mouseOveredElement = element;
 		}
 	}
@@ -132,14 +130,15 @@ void SamlController::draw()
 	// マウスオーバー処理
 	if (m_mouseOveredElement != mouseOveredElement) 
 	{
-		if (m_mouseOveredElement != nullptr) {
-			m_mouseOveredElement->setMouseOvered(false);
-		}
+		auto& pre = m_mouseOveredElement;
 
 		m_mouseOveredElement = mouseOveredElement;
 
+		if (pre != nullptr) {
+			pre->onMouseOverChanged();
+		}
 		if (m_mouseOveredElement != nullptr) {
-			m_mouseOveredElement->setMouseOvered(true);
+			m_mouseOveredElement->onMouseOverChanged();
 		}
 	}
 
@@ -148,21 +147,16 @@ void SamlController::draw()
 		// フォーカス処理
 		if (m_focusingElement != m_mouseOveredElement)
 		{
-			if (m_focusingElement != nullptr) {
-				m_focusingElement->setFocusing(false);
-			}
+			auto& pre = m_focusingElement;
 
 			m_focusingElement = m_mouseOveredElement;
 
-			if (m_focusingElement != nullptr) {
-				m_focusingElement->setFocusing(true);
+			if (pre != nullptr) {
+				pre->onFocusChanged();
 			}
-		}
-
-		// クリック
-		if (m_focusingElement != nullptr)
-		{
-			m_focusingElement->onClicked();
+			if (m_focusingElement != nullptr) {
+				m_focusingElement->onFocusChanged();
+			}
 		}
 	}
 }

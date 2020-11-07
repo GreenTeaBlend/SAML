@@ -1,4 +1,5 @@
 #include "UIElement.h"
+#include "Controller.h"
 #include "UIElementTypeInfo.h"
 #include "Elements/Button.h"
 #include "Elements/TextBox.h"
@@ -7,9 +8,11 @@
 using namespace s3d;
 using namespace SamlUI;
 
+bool UIElement::hasInitialized = false;
+
 #define ELEMENT_DATA(name)\
 {\
-std::function<std::shared_ptr<class UIElement>()> factory = [&]() { return std::shared_ptr<UIElement>((UIElement*)(new name##())); }; \
+std::function<std::shared_ptr<class UIElement>(UIPanel&)> factory = [&](UIPanel& panel) { return std::shared_ptr<UIElement>((UIElement*)(new name##(panel))); }; \
 HashTable<String, PropertySetter> properties; \
 name##::enumratePropertyData(&properties); \
 std::shared_ptr<UIElementTypeInfo> elementData{ new UIElementTypeInfo(factory, properties) }; \
@@ -25,20 +28,40 @@ void UIElement::initialize()
     ELEMENT_DATA(RectElement);
     ELEMENT_DATA(Button);
     ELEMENT_DATA(TextBox);
+
+    hasInitialized = true;
 }
 
-std::shared_ptr<UIElement> UIElement::create(const String& className)
+std::shared_ptr<UIElement> UIElement::create(const String& className, UIPanel& panel, const SpElement& parent)
 {
     if (elementDatas.find(className) == elementDatas.end()) {
         throw s3d::Error(U"The element info of \"{}\" was not found."_fmt(className));
     }
 
-    return elementDatas.at(className)->create();
+    return elementDatas.at(className)->create(panel);
 }
 
-UIElement::UIElement()
+UIElement::UIElement(UIPanel& panel):
+    m_panel(panel),
+    m_parent()
 {
+}
 
+UIElement::~UIElement() 
+{
+    if (m_parent != nullptr) {
+        m_parent->removeChild(this);
+    }
+}
+
+bool UIElement::isMouseOvered() const
+{
+    return m_panel.getMouseOveredElement().get() == this; 
+}
+
+bool UIElement::isFocusing() const
+{
+    return m_panel.getFocusingElementconst().get() == this; 
 }
 
 void UIElement::enumratePropertyData(HashTable<String, PropertySetter>* datas)
@@ -69,4 +92,38 @@ void UIElement::setProperty(const String& propName, const String& value)
 
     // 値を設定する。
     typeInfo->getPropertySetter(this, propName, value);
+}
+
+void UIElement::appendChild(const SpElement& child)
+{
+    m_children.push_back(child);
+}
+
+void UIElement::removeChild(const UIElement* child)
+{
+#if _DEBUG
+    bool foundChild = false;
+
+    for (auto it = m_children.begin(); it != m_children.end(); ) {
+        if (it->get() == child) {
+            it = m_children.erase(it);
+
+            if (!foundChild) {
+                foundChild = true;
+            }
+            else {
+                throw Error(U"2つ以上のChildrenがヒットしました @UIElement::removeChild");
+            }
+        }
+        else {
+            ++it;
+        }
+    }
+
+    if (!foundChild) {
+        throw Error(U"引数のChildが見つかりませんでした。 @UIElement::removeChild");
+    }
+#else
+    std::remove(m_children.begin(), , child) == m_children.end()
+#endif
 }

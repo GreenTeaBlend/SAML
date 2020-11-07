@@ -2,7 +2,7 @@
 # include <Siv3D.hpp> // OpenSiv3D v0.4.3
 #include <fstream>
 
-#include "SamlController.h"
+#include "Controller.h"
 #include "UIElement.h"
 #include "Elements/TextBox.h"
 using namespace s3d;
@@ -25,47 +25,50 @@ void Main()
 
 	TextBox textBox(font, Vec2(0, 0));
 
-	SamlUI::UIElement::initialize();
-	SamlUI::SamlController samlEditor{};
-	SamlUI::SamlController samlPreview{};
+	auto* panel = SamlUI::UIPanel::create<SamlUI::TextBox>();
+	((SamlUI::TextBox*)panel->getRoot().get())->setSize(Vec2{ 300, 400 });
+	((SamlUI::TextBox*)panel->getRoot().get())->setPosition(Vec2{ 50, 100 });
+	((SamlUI::TextBox*)panel->getRoot().get())->setText(U"aiueo");
 
-	//String editorXml = U"<TextBox Name=\"textBox\" Size=\"(400, 600)\" Position=\"(0, 0)\"/>";
-	String editorXml = U"<TextBox Name=\"textBox\" Size=\"(300, 400)\" Position=\"(50, 100)\"/>";
+	//String editorXml = U"<TextBox Name=\"textBox\" Size=\"(300, 400)\" Position=\"(50, 100)\"/>";
+	//auto* panel = SamlUI::UIPanel::create<SamlUI::TextBox>(editorXml);
 
-	samlEditor.parse(editorXml);
+	//samlEditor.parse(editorXml);
 
-	uint64 lastIputTime = Time::GetMillisec();
-	bool isTextEditted = false;
+	//uint64 lastIputTime = Time::GetMillisec();
+	//bool isTextEditted = false;
 
-	String previewXml = U"aaa";// String(U"<Button Position=\"(100, 200)\"/>");
-	std::dynamic_pointer_cast<SamlUI::TextBox>(samlEditor.getElement(U"textBox"))->setText(previewXml);
-	samlPreview.parse(previewXml);
+	//String previewXml = U"aaa";// String(U"<Button Position=\"(100, 200)\"/>");
+	//std::dynamic_pointer_cast<SamlUI::TextBox>(samlEditor.getElement(U"textBox"))->setText(previewXml);
+	//samlPreview.parse(previewXml);
 
 	while (System::Update())
 	{
-		samlEditor.draw();
+		//samlEditor.draw();
 
-		if (samlPreview.isValid()) {
-			Transformer2D transformer{ Mat3x2::Translate(Vec2(400, 0)), true };
-			samlPreview.draw();
-		}
-		else {
-			font(samlPreview.getError()).drawAt(Scene::Center(), Palette::Black);
-		}
+		//if (samlPreview.isValid()) {
+		//	Transformer2D transformer{ Mat3x2::Translate(Vec2(400, 0)), true };
+		//	samlPreview.draw();
+		//}
+		//else {
+		//	font(samlPreview.getError()).drawAt(Scene::Center(), Palette::Black);
+		//}
 
-		String text{};
-		if (TextInput::UpdateText(text, 0) != 0 || KeyBackspace.pressed())
-		{
-			lastIputTime = Time::GetMicrosec();
-			isTextEditted = true;
-		}
+		//String text{};
+		//if (TextInput::UpdateText(text, 0) != 0 || KeyBackspace.pressed())
+		//{
+		//	lastIputTime = Time::GetMicrosec();
+		//	isTextEditted = true;
+		//}
 
-		if (isTextEditted && Time::GetMillisec() - lastIputTime > 500)
-		{
-			String xml = std::dynamic_pointer_cast<SamlUI::TextBox>(samlEditor.getElement(U"textBox"))->getText();
-			samlPreview.parse(xml);
+		//if (isTextEditted && Time::GetMillisec() - lastIputTime > 500)
+		//{
+		//	String xml = std::dynamic_pointer_cast<SamlUI::TextBox>(samlEditor.getElement(U"textBox"))->getText();
+		//	samlPreview.parse(xml);
 
-			isTextEditted = false;
-		}
+		//	isTextEditted = false;
+		//}
+
+		panel->drawUpdate();
 	}
 }

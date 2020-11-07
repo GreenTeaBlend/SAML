@@ -3,9 +3,9 @@
 using namespace s3d;
 using namespace SamlUI;
 
-RectElement::RectElement() :
-    m_position(0, 0),
-    m_size(200, 50)
+RectElement::RectElement(UIPanel& panel) :
+    UIElement(panel),
+    m_rect(0, 0, 50, 50)
 {
 
 }

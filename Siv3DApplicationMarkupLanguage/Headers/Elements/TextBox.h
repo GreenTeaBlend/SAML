@@ -19,6 +19,7 @@ namespace s3d::SamlUI
         struct IndexRange {
             size_t start;
             size_t current;
+            size_t length() const { return start > current ? start - current : current - start; }
         };
 
     private:
@@ -38,6 +39,8 @@ namespace s3d::SamlUI
         // 文字の選択範囲
         Optional<IndexRange> m_selectRange;
 
+        // 文字編集の更新処理
+        void updateText();
         // マウス関連の更新処理
         void updateMouse();
         // カーソル関連の更新処理
@@ -48,10 +51,15 @@ namespace s3d::SamlUI
 
         // 選択領域の描画
         void drawSelection();
+
+    protected:
+
+        friend class UIElement;
+        friend class UIPanel;
+        TextBox(UIPanel& panel);
+
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
-
-        TextBox();
 
         virtual void setPosition(const Vec2& pos) override {
             RectElement::setPosition(pos); 
@@ -75,6 +83,6 @@ namespace s3d::SamlUI
         // カーソルの位置をセットする。第二引数がtrueの場合、カーソルが表示位置に収まるようスクロールが行われます。
         void setCursorPos(size_t pos, bool moveView);
 
-        virtual bool draw() override;
+        virtual void draw() override;
     };
 }
