@@ -19,10 +19,11 @@ void Main()
 {
 	Hoge hoge{};
 	Event<int> event{};   
-	//auto listener = BindListener(event, &Hoge::fuga, &hoge);
-	auto listener = Listener(event, std::function<void(int)>([&](int a) {Console.writeln(U"{}"_fmt(a)); }));
+	auto listener = MemberListener(&Hoge::fuga, &hoge);
+	event.append(listener);
+	//auto listener = Listener(event, std::function<void(int)>([&](int a) {Console.writeln(U"{}"_fmt(a)); }));
 
-	event.Invoke(123);
+	event.invoke(123);
 	//std::function<int(int, int, int)> FuncOfHoge = std::bind(
 	//	&Hoge::fuga,
 	//	&hoge,

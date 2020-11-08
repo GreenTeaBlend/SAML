@@ -25,6 +25,34 @@ namespace s3d {
     //};
 
     template <class... _Types>
+    class Listener {
+        template <class... _Types>
+        friend class Event;
+    protected:
+
+        Event<_Types...>* m_event;
+        std::function<void(_Types...)> m_function;
+    public:
+        Listener(std::function<void(_Types...)> _function) :
+            m_event(),
+            m_function(_function)
+        {
+        }
+
+        virtual ~Listener() {
+        }
+    };
+
+    template <class T, class _Arg1>
+    class MemberListener : public Listener<_Arg1> {
+    public:
+        MemberListener(void(T::*&& _func)(_Arg1), T*&& _obj) :
+            Listener<_Arg1>(std::bind(_func, _obj,
+                std::placeholders::_1))
+        { }
+    };
+
+    template <class... _Types>
     struct ListenerPair {
         void* pObj;
         std::function<void(_Types...)>* pFunc;
@@ -33,9 +61,6 @@ namespace s3d {
     template <class... _Types>
     class Event 
     {
-        template <class... _Types>
-        friend class Listener;
-
         Array<ListenerPair<_Types...>> m_listeners;
     public:
         Event() :
@@ -44,46 +69,23 @@ namespace s3d {
 
         }
 
-        void Invoke(_Types... _Args)
+        void invoke(_Types... _Args)
         {
             for (auto& pair : m_listeners) {
                 (*pair.pFunc)(_Args...);
             }
-            //m_functions(_Args...);
         }
 
-        //void append(std::function<void(_Types...)> func) {
-        //    m_functions = func;
-        //}
-
-        //template<class T>
-        //void append(void(T::*&&_func)(_Types... _Args)) {
-        //    std::function<int(int, int, int)> FuncOfHoge = std::bind(
-        //        &Hoge::fuga,
-        //        &hoge,
-        //        std::placeholders::_1,
-        //        std::placeholders::_2,
-        //        std::placeholders::_3);
-        //}
-    };
-
-    template <class... _Types>
-    class Listener {
-    protected:
-        Event<_Types...>& m_event;
-        std::function<void(_Types...)> m_function;
-    public:
-        Listener(Event<_Types...>& _event, std::function<void(_Types...)> _function) :
-            m_event(_event),
-            m_function(_function)
+        void append(Listener<_Types...>& _listener)
         {
-            m_event.m_listeners.push_back(ListenerPair<_Types...>{ this, &m_function });
+            m_listeners.push_back(ListenerPair<_Types...>{ &_listener, &_listener.m_function });
         }
 
-        virtual ~Listener() {
-            for (auto it = m_event.m_listeners.begin(); it != m_event.m_listeners.end();) {
+        void remove(Listener<_Types...>)
+        {
+            for (auto it = m_listeners.begin(); it != m_listeners.end();) {
                 if (it->pObj == this) {
-                    it = m_event.m_listeners.erase(it);
+                    it = m_listeners.erase(it);
                 }
                 else {
                     ++it;
@@ -91,17 +93,4 @@ namespace s3d {
             }
         }
     };
-
-    //template <class T, class _Arg1>
-    //class BindListener : public Listener<_Arg1> {
-    //public:
-    //    BindListener(Event<_Arg1>& _event, void(T::*&& _func)(_Arg1), T*&& _obj) :
-    //        Listener<_Arg1>(_event, /*std::bind(
-    //            _func,
-    //            _obj,
-    //            std::placeholders::_1)*/[&](int a) {Console.writeln(U"{}"_fmt(a)); })
-    //    {
-
-    //    }
-    //};
 }
