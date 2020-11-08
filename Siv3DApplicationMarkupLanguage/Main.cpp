@@ -18,21 +18,15 @@ public:
 void Main()
 {
 	Hoge hoge{};
-	Event<int> event{};   
-	auto listener = MemberListener(&Hoge::fuga, &hoge);
-	event.append(listener);
-	//auto listener = Listener(event, std::function<void(int)>([&](int a) {Console.writeln(U"{}"_fmt(a)); }));
+	Event<int> event{};
 
-	event.invoke(123);
-	//std::function<int(int, int, int)> FuncOfHoge = std::bind(
-	//	&Hoge::fuga,
-	//	&hoge,
-	//	std::placeholders::_1,
-	//	std::placeholders::_2,
-	//	std::placeholders::_3);
-	//FuncOfHoge()
-	//event.append([&](int a) {Console.writeln(U"{}"_fmt(a)); });
-	//event.Invoke(12);
+	{
+		auto listener = MemberListener(&Hoge::fuga, &hoge);
+		event += listener;
+		event.invoke(123);
+	}
+
+	event.invoke(456);
 
 	Window::Resize(1000, 600);
 

@@ -115,6 +115,7 @@
     <ClCompile Include="Sources\Elements\Button.cpp" />
     <ClCompile Include="Sources\Elements\RectElement.cpp" />
     <ClCompile Include="Sources\Elements\TextBox.cpp" />
+    <ClCompile Include="Sources\EventListener.cpp" />
     <ClCompile Include="Sources\UIPanel.cpp" />
     <ClCompile Include="Sources\UIElement.cpp" />
     <ClCompile Include="Sources\UIElementTypeInfo.cpp" />

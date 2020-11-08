@@ -1,46 +1,47 @@
 #pragma once
 #include <Siv3D.hpp>
 
-namespace s3d {
-    //template <class... _Types>
-    //class Event {
-    //    std::function<void(_Types...)> m_functions;
-    //public:
-    //    void Invoke(_Types... _Args)
-    //    {
-    //        m_functions(_Args...);
-    //    }
+namespace s3d 
+{
+    class EventBase;
 
-    //    void append(std::function<void(_Types...)> func) {
-    //        m_functions = func;
-    //    }
+    class ListenerBase {
+        template <class... _Types>
+        friend class Event;
+        friend class EventBase;
+    protected:
 
-    //    //_Ret operator()(_Types... _Args) const {
-    //    //    if (_Empty()) {
-    //    //        _Xbad_function_call();
-    //    //    }
-    //    //    const auto _Impl = _Getimpl();
-    //    //    return _Impl->_Do_call(_STD forward<_Types>(_Args)...);
-    //    //}
-    //};
+        EventBase* m_event;
+    public:
+        ListenerBase() :
+            m_event()
+        {
+        }
+
+        virtual ~ListenerBase();
+    };
+
+    class EventBase 
+    {
+    public:
+        virtual ~EventBase() = default;
+        virtual void remove(ListenerBase& _pKey) = 0;
+    };
 
     template <class... _Types>
-    class Listener {
+    class Listener : public ListenerBase {
         template <class... _Types>
         friend class Event;
     protected:
 
-        Event<_Types...>* m_event;
         std::function<void(_Types...)> m_function;
     public:
         Listener(std::function<void(_Types...)> _function) :
-            m_event(),
             m_function(_function)
         {
         }
 
-        virtual ~Listener() {
-        }
+        virtual ~Listener() = default;
     };
 
     template <class T, class _Arg1>
@@ -59,10 +60,14 @@ namespace s3d {
     };
 
     template <class... _Types>
-    class Event 
+    class Event : public EventBase
     {
         Array<ListenerPair<_Types...>> m_listeners;
+
+    protected:
+
     public:
+
         Event() :
             m_listeners()
         {
@@ -79,18 +84,29 @@ namespace s3d {
         void append(Listener<_Types...>& _listener)
         {
             m_listeners.push_back(ListenerPair<_Types...>{ &_listener, &_listener.m_function });
+            _listener.m_event = this;
         }
 
-        void remove(Listener<_Types...>)
+        void remove(ListenerBase& _listener) override
         {
             for (auto it = m_listeners.begin(); it != m_listeners.end();) {
-                if (it->pObj == this) {
-                    it = m_listeners.erase(it);
+                if (it->pObj == &_listener) {
+                    m_listeners.erase(it);
+                    break;
                 }
                 else {
                     ++it;
                 }
             }
+            _listener.m_event = nullptr;
+        }
+
+        void operator+=(Listener<_Types...>& _listener) {
+            append(_listener);
+        }
+
+        void operator-=(Listener<_Types...>& _listener) {
+            remove(_listener);
         }
     };
 }
