@@ -5,10 +5,34 @@
 #include "UIPanel.h"
 #include "UIElement.h"
 #include "Elements/TextBox.h"
+#include "EventListener.h"
 using namespace s3d;
+
+class Hoge {
+public:
+	void fuga(int value) {
+		Console.writeln(U"{}"_fmt(value));
+	}
+};
 
 void Main()
 {
+	Hoge hoge{};
+	Event<int> event{};   
+	//auto listener = BindListener(event, &Hoge::fuga, &hoge);
+	auto listener = Listener(event, std::function<void(int)>([&](int a) {Console.writeln(U"{}"_fmt(a)); }));
+
+	event.Invoke(123);
+	//std::function<int(int, int, int)> FuncOfHoge = std::bind(
+	//	&Hoge::fuga,
+	//	&hoge,
+	//	std::placeholders::_1,
+	//	std::placeholders::_2,
+	//	std::placeholders::_3);
+	//FuncOfHoge()
+	//event.append([&](int a) {Console.writeln(U"{}"_fmt(a)); });
+	//event.Invoke(12);
+
 	Window::Resize(1000, 600);
 
 	// 背景を水色にする
