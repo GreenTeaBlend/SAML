@@ -28,7 +28,7 @@ std::shared_ptr<UIPanel> UIPanel::create(String xml, String* error)
 
 	try 
 	{
-		panel->m_rootElement = panel->createElement(reader);
+		panel->m_rootElement = panel->createElementRecursively(reader, nullptr);
 
 		if (reader.nextSibling().isNull() == false) {
 			// Root要素は2つ目以降は無視する。(WPFと同じ仕様)
@@ -56,11 +56,11 @@ std::shared_ptr<UIPanel> UIPanel::create(String xml, String* error)
 	return nullptr;
 }
 
-std::shared_ptr<UIElement> UIPanel::createElement(const XMLElement& xmlElement)
+std::shared_ptr<UIElement> UIPanel::createElementRecursively(const XMLElement& xmlElement, const std::shared_ptr<UIElement>& parent)
 {
 	String className = xmlElement.name();
 
-	std::shared_ptr<UIElement> uiElement = UIElement::create(className, *this);
+	std::shared_ptr<UIElement> uiElement = UIElement::create(className, *this, parent);
 	m_elements.push_back(uiElement);
 
 	for (auto& attrPair : xmlElement.attributes())
@@ -78,7 +78,7 @@ std::shared_ptr<UIElement> UIPanel::createElement(const XMLElement& xmlElement)
 	// 子要素を再帰的に生成
 	XMLElement childXml = xmlElement.firstChild();
 	while (!childXml.isNull()) {
-		auto childUI = createElement(childXml);
+		auto childUI = createElementRecursively(childXml, uiElement);
 		childXml = childXml.nextSibling();
 	}
 

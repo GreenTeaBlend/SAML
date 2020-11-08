@@ -24,7 +24,7 @@ namespace s3d::SamlUI
         // Ž¯•ÊŽq•t‚«‚ÌUIElement
         s3d::HashTable<String, std::shared_ptr<UIElement>> m_namedElements;
 
-        std::shared_ptr<UIElement> createElement(const XMLElement& xmlElement);
+        std::shared_ptr<UIElement> createElementRecursively(const XMLElement& xmlElement, const std::shared_ptr<UIElement>& parent);
 
         UIPanel(const UIPanel&) = delete;
         const UIPanel& operator=(const UIPanel&) = delete;

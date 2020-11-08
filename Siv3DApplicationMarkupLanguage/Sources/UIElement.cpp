@@ -38,19 +38,26 @@ std::shared_ptr<UIElement> UIElement::create(const String& className, UIPanel& p
         throw s3d::Error(U"The element info of \"{}\" was not found."_fmt(className));
     }
 
-    return elementDatas.at(className)->create(panel);
+    std::shared_ptr<UIElement> element = elementDatas.at(className)->create(panel);
+
+    if (parent != nullptr) {
+        element->setParent(parent);
+    }
+
+    return element;
 }
 
 UIElement::UIElement(UIPanel& panel):
     m_panel(panel),
-    m_parent()
+    m_parent(),
+    m_name()
 {
 }
 
 UIElement::~UIElement() 
 {
     if (m_parent != nullptr) {
-        m_parent->removeChild(this);
+        setParent(nullptr);
     }
 }
 
@@ -74,56 +81,58 @@ void UIElement::enumratePropertyData(HashTable<String, PropertySetter>* datas)
 
 void UIElement::setProperty(const String& propName, const String& value)
 {
-    // "class Saml::UIElement::Button" のような文字列が取得されるので、名前空間も除いた純粋なクラス名に変換する。
-    String className = Unicode::Widen(typeid(*this).name());
-    auto colonIndex = className.lastIndexOf(U":");
-    if (colonIndex != String::npos) {
-        className = className.substr(colonIndex + 1); // コロンより後を取得
-    }
-    else {
-        className = className.substr(6); // 先頭の"class "より後を取得
-    }
-
     // このUIElementの型情報を取得する。
-    if (elementDatas.find(className) == elementDatas.end()) {
-        throw s3d::Error(U"The element info of \"{}\" was not found. ({})"_fmt(className, Unicode::Widen(__FUNCTION__)));
+    auto typeInfo = elementDatas.find(className());
+    if (typeInfo == elementDatas.end()) {
+        throw s3d::Error(U"The element info of \"{}\" was not found. ({})"_fmt(className(), Unicode::Widen(__FUNCTION__)));
     }
-    const std::shared_ptr<UIElementTypeInfo>& typeInfo = elementDatas.at(className);
 
     // 値を設定する。
-    typeInfo->getPropertySetter(this, propName, value);
+    typeInfo->second->getPropertySetter(this, propName, value);
 }
 
-void UIElement::appendChild(const SpElement& child)
+void UIElement::setParent(std::shared_ptr<UIElement> parent)
 {
-    m_children.push_back(child);
-}
+    if (parent != nullptr) 
+    {
+        if (m_parent != nullptr) {
+            throw Error(U"UIElementのParentは変更できません。 name={}, m_parent={}, parent={} @UIElement::setParent"_fmt(this->className(), m_parent->className(), parent->className()));
+        }
 
-void UIElement::removeChild(const UIElement* child)
-{
+        parent->m_children.push_back(this);
+    }
+    else
+    {
+        if (m_parent == nullptr) {
+            throw Error(U"UIElementのParentはすでにNULLです。 name={} @UIElement::setParent"_fmt(this->className()));
+        }
+
 #if _DEBUG
-    bool foundChild = false;
+        // m_parentのchildrenに自身が1つのみ登録されていることを確かめる。
+        bool foundChild = false;
+        for (auto it = m_parent->m_children.begin(); it != m_parent->m_children.end(); ) {
+            if (*it == this) {
+                it = m_parent->m_children.erase(it);
 
-    for (auto it = m_children.begin(); it != m_children.end(); ) {
-        if (it->get() == child) {
-            it = m_children.erase(it);
-
-            if (!foundChild) {
-                foundChild = true;
+                if (!foundChild) {
+                    foundChild = true;
+                }
+                else {
+                    throw Error(U"2つ以上のChildrenがヒットしました @UIElement::setParent");
+                }
             }
             else {
-                throw Error(U"2つ以上のChildrenがヒットしました @UIElement::removeChild");
+                ++it;
             }
         }
-        else {
-            ++it;
+
+        if (!foundChild) {
+            throw Error(U"引数のChildが見つかりませんでした。 @UIElement::setParent");
         }
+#else
+        std::remove(m_parent->m_children.begin(), m_parent->m_children.end(), this);
+#endif
     }
 
-    if (!foundChild) {
-        throw Error(U"引数のChildが見つかりませんでした。 @UIElement::removeChild");
-    }
-#else
-    std::remove(m_children.begin(), , child) == m_children.end()
-#endif
+    m_parent = parent;
 }

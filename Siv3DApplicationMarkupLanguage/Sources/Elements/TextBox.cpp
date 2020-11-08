@@ -81,6 +81,11 @@ namespace {
     }
 }
 
+void Tekitou()
+{
+
+}
+
 SamlUI::TextBox::TextBox(UIPanel& panel) :
     RectElement(panel),
     m_font(20),
@@ -90,7 +95,10 @@ SamlUI::TextBox::TextBox(UIPanel& panel) :
     m_scrollView(new ScrollView()),
     m_selectRange()
 {
-
+    auto* func = new std::function<void()>([&]() {
+        m_scrollView->setRect(RectF{ getPosition(), getSize() });
+        });
+    hookTransformChangedEvent(func);
 }
 
 void SamlUI::TextBox::enumratePropertyData(HashTable<String, PropertySetter>* datas)

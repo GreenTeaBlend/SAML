@@ -5,16 +5,18 @@ using namespace SamlUI;
 
 RectElement::RectElement(UIPanel& panel) :
     UIElement(panel),
-    m_rect(0, 0, 50, 50)
+    m_pos(0, 0),
+    m_size(50, 50),
+    m_isPosDirty(true)
 {
 
 }
 
 void RectElement::enumratePropertyData(HashTable<String, PropertySetter>* datas)
 {
-    datas->insert(std::make_pair(U"Position",
+    datas->insert(std::make_pair(U"Margin",
         [&](UIElement* elm, const String& value) {
-            ((RectElement*)elm)->setPosition(Parse<Vec2>(value));
+            ((RectElement*)elm)->setMargin(Parse<Vec4>(value));
         }));
 
     datas->insert(std::make_pair(U"Size",
@@ -23,4 +25,30 @@ void RectElement::enumratePropertyData(HashTable<String, PropertySetter>* datas)
         }));
 
     UIElement::enumratePropertyData(datas);
+}
+
+void RectElement::setPosDirtyRecursively()
+{
+    m_isPosDirty = true;
+    for (auto child : getChildren()) {
+        RectElement* rectElm = dynamic_cast<RectElement*>(child);
+        if (rectElm != nullptr && !rectElm->m_isPosDirty) {
+            rectElm->setPosDirtyRecursively();
+        }
+    }
+}
+
+const Vec2& RectElement::getPosition() {
+    if (m_isPosDirty) {
+        if (getParent() != nullptr) {
+            RectElement* rectElm = dynamic_cast<RectElement*>(getParent().get());
+            m_pos = rectElm->getPosition() + m_margin.xy();
+        }
+        else {
+            m_pos = m_margin.xy();
+        }
+        m_isPosDirty = false;
+    }
+
+    return m_pos;
 }

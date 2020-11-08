@@ -20,8 +20,13 @@ void Main()
 	auto panel = SamlUI::UIPanel::create<SamlUI::TextBox>();
 	auto* textBox = dynamic_cast<SamlUI::TextBox*>(panel->getRoot().get());
 	textBox->setSize(Vec2{ 300, 400 });
-	textBox->setPosition(Vec2{ 50, 100 });
-	textBox->setText(U"aiueo");
+	textBox->setMargin(Vec4{ 50, 100, 0, 0 });
+
+	String initialXml =
+		String(U"<Button Margin=\"(50, 50, 0, 0)\">\n") +
+		U"\t<Button Margin=\"(0, 100, 0, 0)\"/>\n" +
+		U"</Button>\n";
+	textBox->setText(initialXml);
 
 	uint64 lastIputTime = Time::GetMillisec();
 	bool isTextEditted = false;

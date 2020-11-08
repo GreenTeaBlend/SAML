@@ -23,26 +23,44 @@ namespace s3d::SamlUI
         // 識別用のUI名
         String m_name;
 
-        SpElement m_parent;
-        Array<SpElement> m_children;
+        std::shared_ptr<UIElement> m_parent;
+        Array<UIElement*> m_children;
 
         UIPanel& m_panel;
 
-        // 子要素の追加・削除処理。
-        void appendChild(const SpElement& child);
-        void removeChild(const UIElement* child);
+        String m_className;
+
+        // 親要素の設定 
+        // 現時点では生成後の変更は想定しておらず、また親要素から順に親子関係を確定させる。(子を持った要素を他要素の子にしない)
+        void setParent(std::shared_ptr<UIElement> parent);
 
         // UIElementの情報を読み込む
         static void initialize();
 
         // 引数のクラス名のUIElementを生成する。
-        static std::shared_ptr<UIElement> create(const String& className, UIPanel& panel, const SpElement& parent = nullptr);
+        static std::shared_ptr<UIElement> create(const String& className, UIPanel& panel, const SpElement& parent);
 
         UIElement(const UIElement&) = delete;
         const UIElement& operator=(const UIElement&) = delete;
 
         // 描画する。
         virtual void draw() { }
+
+        // このインスタンスのクラス名を返す。
+        String className() {
+            if (m_className.length() == 0) {
+                // "class Saml::UIElement::Button" のような文字列が取得されるので、名前空間も除いた純粋なクラス名に変換する。
+                m_className = Unicode::Widen(typeid(*this).name());
+                auto colonIndex = m_className.lastIndexOf(U":");
+                if (colonIndex != String::npos) {
+                    m_className = m_className.substr(colonIndex + 1); // コロンより後を取得
+                }
+                else {
+                    m_className = m_className.substr(6); // 先頭の"class "より後を取得
+                }
+            }
+            return m_className;
+        }
 
     protected:
 
@@ -64,7 +82,7 @@ namespace s3d::SamlUI
         bool isMouseOvered() const;
         bool isFocusing() const;
 
-        const SpElement& getParent() const { return m_parent; }
+        const std::shared_ptr<UIElement>& getParent() const { return m_parent; }
 
         /// <summary>
         /// このElementが属するPanel
@@ -78,22 +96,6 @@ namespace s3d::SamlUI
         void setName(const String& name) { m_name = name; }
 #endif
 
-        ///// <summary>
-        ///// 指定された型のUIElementを生成し、子要素として登録する。
-        ///// </summary>
-        ///// <typeparam name="T"></typeparam>
-        ///// <param name="parent"></param>
-        ///// <returns></returns>
-        //template <class T>
-        //std::shared_ptr<T> createChild() {
-        //    auto sp = std::shared_ptr<T>(new T(m_panel));
-        //    sp->m_parent = 
-
-        //    if (parent != nullptr) {
-        //        parent->appendChild(sp);
-        //    }
-
-        //    return sp;
-        //}
+        const Array<UIElement*>& getChildren() const { return m_children; }
     };
 }
