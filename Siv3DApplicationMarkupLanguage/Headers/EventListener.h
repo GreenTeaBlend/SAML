@@ -48,6 +48,9 @@ namespace s3d
         virtual ~Listener() = default;
     };
 
+    template <typename T>
+    constexpr bool false_v = false;
+
     /// <summary>
     /// Eventクラスから通知を受け取り、登録されたメンバ関数を呼び出すクラス。
     /// </summary>
@@ -60,16 +63,31 @@ namespace s3d
         { }
 
         std::function<void(_Args...)> getBind(void(T:: * _func)(_Args...), T * _obj) {
-            if constexpr (size <= 1) {
+            if constexpr (size == 0) {
+                return std::bind(_func, _obj
+                );
+            }
+            else if constexpr (size == 1) {
                 return std::bind(_func, _obj,
                     std::placeholders::_1
                 );
             }
-            else if constexpr (size <= 2) {
+            else if constexpr (size == 2) {
                 return std::bind(_func, _obj,
                     std::placeholders::_1,
                     std::placeholders::_2
                 );
+            }
+            else if constexpr (size == 3) {
+                return std::bind(_func, _obj,
+                    std::placeholders::_1,
+                    std::placeholders::_2,
+                    std::placeholders::_3
+                );
+            }
+            else {
+                static_assert(false_v<T>, "MemberListener does not expect more than 4 arguments.");
+                return nullptr;
             }
         }
     };

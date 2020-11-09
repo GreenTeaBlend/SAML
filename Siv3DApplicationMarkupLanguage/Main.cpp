@@ -16,6 +16,9 @@ public:
 	void fuga2(int value, int value2) {
 		Console.writeln(U"fuga2 {} {}"_fmt(value, value2));
 	}
+	void fuga3() {
+		Console.writeln(U"fuga3");
+	}
 };
 
 void Main()
@@ -23,10 +26,10 @@ void Main()
 	Hoge hoge{};
 
 	{
-		Event<int> event{};
-		auto listener = MemberListener(&Hoge::fuga, &hoge);
+		Event event{};
+		auto listener = MemberListener(&Hoge::fuga3, &hoge);
 		event += listener;
-		event.invoke(123);
+		event.invoke();
 	}
 
 	{
