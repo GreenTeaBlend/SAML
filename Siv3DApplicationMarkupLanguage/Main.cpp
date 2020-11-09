@@ -37,7 +37,9 @@ void Main()
 	{
 		Event<int, int> event{};
 		auto listener = MemberListener(&Hoge::fuga2, &hoge);
+		auto listener2 = Listener(std::function([&](int value, int value2) {Console.writeln(U"func {} {}"_fmt(value, value2)); }));
 		event += listener;
+		event += listener2;
 		event.invoke(123, 456);
 	}
 
@@ -66,8 +68,22 @@ void Main()
 	std::shared_ptr<SamlUI::UIPanel> previewPanel;
 	String previewError{};
 
+	Event<int, int> event2{};
+
 	while (System::Update())
 	{
+
+		{
+			Event<int, int> event{};
+			auto listener = MemberListener(&Hoge::fuga2, &hoge);
+			event += listener;
+		}
+
+		{
+			auto listener = MemberListener(&Hoge::fuga2, &hoge);
+			event2 += listener;
+		}
+
 		// エディタの描画
 		panel->drawUpdate();
 

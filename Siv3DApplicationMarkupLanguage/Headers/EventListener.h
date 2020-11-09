@@ -15,8 +15,10 @@ namespace s3d
     {
         template <class... _Args>
         struct ListenerPair {
+            // pFuncを保持しているEvent。
             Listener<_Args...>* pListener;
-            std::function<void(_Args...)>* pFunc;
+            // コールバック関数。
+            std::shared_ptr<std::function<void(_Args...)>> pFunc;
         };
 
         Array<ListenerPair<_Args...>> m_listeners;
@@ -33,10 +35,12 @@ namespace s3d
             // 自身に登録しているすべてのListenerのm_eventsから自身を削除
             for (auto& listenerPair : m_listeners) {
                 auto* pListener = listenerPair.pListener;
-                for (auto it = pListener->m_events.begin(); it != pListener->m_events.end(); ++it) {
-                    if (*it == this) {
-                        pListener->m_events.erase(it);
-                        break;
+                if (pListener != nullptr) {
+                    for (auto it = pListener->m_events.begin(); it != pListener->m_events.end(); ++it) {
+                        if (*it == this) {
+                            pListener->m_events.erase(it);
+                            break;
+                        }
                     }
                 }
             }
@@ -60,7 +64,7 @@ namespace s3d
         /// </summary>
         void append(Listener<_Args...>& _listener)
         {
-            m_listeners.push_back(ListenerPair<_Args...>{ &_listener, & _listener.m_function });
+            m_listeners.push_back(ListenerPair<_Args...>{ &_listener, _listener.m_function });
             _listener.m_events.push_back(this);
         }
 
@@ -100,6 +104,13 @@ namespace s3d
         void operator-=(Listener<_Args...>& _listener) {
             remove(_listener);
         }
+
+        ///// <summary>
+        ///// functionを直接hookする。(unhook不可)
+        ///// </summary>
+        //void operator+=(std::function<_Args...>& _function) {
+        //    append(_listener);
+        //}
     };
 
     /// <summary>
@@ -115,14 +126,14 @@ namespace s3d
         // このListenerがhookしているEvent
         Array<Event<_Args...>*> m_events;
 
-        std::function<void(_Args...)> m_function;
+        std::shared_ptr<std::function<void(_Args...)>> m_function;
     public:
         /// <summary>
         /// 任意の関数をhookするListenerを生成する。
         /// </summary>
-        Listener(std::function<void(_Args...)> _function) :
+        Listener(const std::function<void(_Args...)>& _function) :
             m_events(),
-            m_function(_function)
+            m_function(new std::function<void(_Args...)>(_function))
         {
         }
 
