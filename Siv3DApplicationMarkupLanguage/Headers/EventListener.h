@@ -51,27 +51,28 @@ namespace s3d
     /// <summary>
     /// Eventクラスから通知を受け取り、登録されたメンバ関数を呼び出すクラス。
     /// </summary>
-    template <class T, class _Arg1>
-    class MemberListener : public Listener<_Arg1> {
+    template <class T, class... _Args>
+    class MemberListener : public Listener<_Args...> {
+        static constexpr unsigned long long size = sizeof...(_Args);
     public:
-        MemberListener(void(T::*&& _func)(_Arg1), T*&& _obj) :
-            Listener<_Arg1>(std::bind(_func, _obj,
-                std::placeholders::_1))
+        MemberListener(void(T::*&& _func)(_Args...), T*&& _obj) :
+            Listener<_Args...>(getBind(_func, _obj))
         { }
-    };
 
-    ///// <summary>
-    ///// Eventクラスから通知を受け取り、登録されたメンバ関数を呼び出すクラス。
-    ///// </summary>
-    //template <class T, class _Arg1, class _Arg2>
-    //class MemberListener : public Listener<_Arg1, _Arg2> {
-    //public:
-    //    MemberListener(void(T::*&& _func)(_Arg1, _Arg2), T*&& _obj) :
-    //        Listener<_Arg1, _Arg2>(std::bind(_func, _obj,
-    //            std::placeholders::_1,
-    //            std::placeholders::_2))
-    //    { }
-    //};
+        std::function<void(_Args...)> getBind(void(T:: * _func)(_Args...), T * _obj) {
+            if constexpr (size <= 1) {
+                return std::bind(_func, _obj,
+                    std::placeholders::_1
+                );
+            }
+            else if constexpr (size <= 2) {
+                return std::bind(_func, _obj,
+                    std::placeholders::_1,
+                    std::placeholders::_2
+                );
+            }
+        }
+    };
 
     /// <summary>
     /// イベントを発行する側のクラス。登録されたListenerの関数を呼び出す。

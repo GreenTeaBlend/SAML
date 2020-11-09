@@ -11,22 +11,32 @@ using namespace s3d;
 class Hoge {
 public:
 	void fuga(int value) {
-		Console.writeln(U"{}"_fmt(value));
+		Console.writeln(U"fuga {}"_fmt(value));
+	}
+	void fuga2(int value, int value2) {
+		Console.writeln(U"fuga2 {} {}"_fmt(value, value2));
 	}
 };
 
 void Main()
 {
 	Hoge hoge{};
-	Event<int> event{};
 
 	{
+		Event<int> event{};
 		auto listener = MemberListener(&Hoge::fuga, &hoge);
 		event += listener;
 		event.invoke(123);
 	}
 
-	event.invoke(456);
+	{
+		Event<int, int> event{};
+		auto listener = MemberListener(&Hoge::fuga2, &hoge);
+		event += listener;
+		event.invoke(123, 456);
+	}
+
+	//event.invoke(456);
 
 	Window::Resize(1000, 600);
 
