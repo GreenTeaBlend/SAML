@@ -30,6 +30,8 @@ void Main()
 		auto listener = MemberListener(&Hoge::fuga3, &hoge);
 		event += listener;
 		event.invoke();
+		event -= listener;
+		event.invoke();
 	}
 
 	{
