@@ -9,6 +9,11 @@ namespace {
     // 右上左下
     const Vec4 TEXT_PADDING{ 6, 0, 30, 0 };
 
+    // キー長押しによるカーソル移動の間隔 (横方向)
+    const double KEY_INTERVAL_H{ 0.03 };
+    // キー長押しによるカーソル移動の間隔 (縦方向)
+    const double KEY_INTERVAL_V{ 0.06 };
+
     /// <summary>
     /// 引数の行をクリックしたとして、x座標を参考にクリックした場所(行頭の文字を0とした番号)を返す
     /// </summary>
@@ -309,19 +314,19 @@ void SamlUI::TextBox::updateCursor()
     size_t cursorPos = m_cursorPos;
 
     // 左右移動
-    if (KeyRight.down() || (KeyRight.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(0.06)))
+    if (KeyRight.down() || (KeyRight.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(KEY_INTERVAL_H)))
     {
         m_keyPressStopwatch.restart();
         cursorPos++; 
     }
-    if (KeyLeft.down() || (KeyLeft.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(0.06)))
+    if (KeyLeft.down() || (KeyLeft.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(KEY_INTERVAL_H)))
     {
         m_keyPressStopwatch.restart();
         cursorPos = cursorPos >= 1 ? cursorPos - 1 : 0; 
     }
 
     // 上の行に移動
-    if (KeyUp.down() || (KeyUp.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(0.06)))
+    if (KeyUp.down() || (KeyUp.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(KEY_INTERVAL_V)))
     {
         m_keyPressStopwatch.restart();
 
@@ -343,7 +348,7 @@ void SamlUI::TextBox::updateCursor()
     }
 
     // 下の行に移動
-    if (KeyDown.down() || (KeyDown.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(0.06)))
+    if (KeyDown.down() || (KeyDown.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(KEY_INTERVAL_V)))
     {
         m_keyPressStopwatch.restart();
 
@@ -407,26 +412,18 @@ void SamlUI::TextBox::setCursorPos(size_t pos, bool moveView)
 
     if (moveView)
     {
+        // pos番目の文字の描画領域を取得する。
         Vec2 textTL = TEXT_PADDING.xy();
+        UITextIndexer indexer{ textTL, m_text, m_font };
+        indexer.nextUntil(m_cursorPos);
+        RectF regionToShow = indexer.currentRegion();
 
-        RectF regionToShow;
-        for (UITextIndexer indexer{ textTL, m_text, m_font }; ; indexer.next())
-        {
-            if (indexer.currentIndex() == pos) {
-                regionToShow = indexer.currentRegion();
-                break;
-            }
+        // カーソルの左右の余白を見せたいので幅を広げる
+        static const double rightPad = 10.0;
+        static const double leftPad = 10.0;
+        regionToShow.x -= rightPad;
+        regionToShow.w += rightPad + leftPad;
 
-            // m_cursorPosは文字列の外にセットされることはないので、このreturnは通らないはず。
-            if (!indexer.isValid()) {
-                return;
-            }
-        }
-
-        // テキストの描画開始点からの相対位置
-        regionToShow.moveBy(-textTL);
-
-        //--------------------------------------------------
         // regionToShowが表示領域に入るようにスクロールする。
         m_scrollView->moveToShow(regionToShow);
     }

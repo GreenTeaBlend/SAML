@@ -166,6 +166,10 @@ void ScrollView::moveToShow(const RectF& region)
     // ‰º‘¤‚ªŒ©‚¦‚é‚æ‚¤‚ÉˆÚ“®
     double bottomRelativePos = (region.y + region.h) / m_verticalBarState.actualSize - m_verticalBarState.length;
     if (m_verticalBarState.pos < bottomRelativePos) { m_verticalBarState.pos = bottomRelativePos; }
+
+    // Clamp
+    m_horizontalBarState.pos = Clamp(m_horizontalBarState.pos, 0.0, 1.0 - m_horizontalBarState.length);
+    m_verticalBarState.pos = Clamp(m_verticalBarState.pos, 0.0, 1.0 - m_verticalBarState.length);
 }
 
 Vec2 ScrollView::offset() const
