@@ -5,6 +5,10 @@ namespace s3d
 {
     class EventBase;
 
+    /// <summary>
+    /// Listener‚Ì’ŠÛƒNƒ‰ƒX
+    /// </summary>
+    /// <remarks></remarks>
     class ListenerBase {
         template <class... _Types>
         friend class Event;
@@ -13,12 +17,8 @@ namespace s3d
 
         EventBase* m_event;
     public:
-        ListenerBase() :
-            m_event()
-        {
-        }
-
-        virtual ~ListenerBase();
+        ListenerBase() = default;
+        virtual ~ListenerBase() =default;
     };
 
     class EventBase 
@@ -45,7 +45,12 @@ namespace s3d
         {
         }
 
-        virtual ~Listener() = default;
+        virtual ~Listener() {
+            if (m_event != nullptr) {
+                m_event->remove(*this);
+                m_event = nullptr;
+            }
+        }
     };
 
     template <typename T>
