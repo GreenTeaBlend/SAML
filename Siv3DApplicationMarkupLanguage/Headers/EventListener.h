@@ -28,6 +28,10 @@ namespace s3d
         virtual void remove(ListenerBase& _pKey) = 0;
     };
 
+    /// <summary>
+    /// Eventクラスから通知を受け取るクラス
+    /// </summary>
+    /// <typeparam name="..._Types">イベントの引数</typeparam>
     template <class... _Types>
     class Listener : public ListenerBase {
         template <class... _Types>
@@ -44,6 +48,9 @@ namespace s3d
         virtual ~Listener() = default;
     };
 
+    /// <summary>
+    /// Eventクラスから通知を受け取り、登録されたメンバ関数を呼び出すクラス。
+    /// </summary>
     template <class T, class _Arg1>
     class MemberListener : public Listener<_Arg1> {
     public:
@@ -53,18 +60,33 @@ namespace s3d
         { }
     };
 
-    template <class... _Types>
-    struct ListenerPair {
-        void* pObj;
-        std::function<void(_Types...)>* pFunc;
-    };
+    ///// <summary>
+    ///// Eventクラスから通知を受け取り、登録されたメンバ関数を呼び出すクラス。
+    ///// </summary>
+    //template <class T, class _Arg1, class _Arg2>
+    //class MemberListener : public Listener<_Arg1, _Arg2> {
+    //public:
+    //    MemberListener(void(T::*&& _func)(_Arg1, _Arg2), T*&& _obj) :
+    //        Listener<_Arg1, _Arg2>(std::bind(_func, _obj,
+    //            std::placeholders::_1,
+    //            std::placeholders::_2))
+    //    { }
+    //};
 
+    /// <summary>
+    /// イベントを発行する側のクラス。登録されたListenerの関数を呼び出す。
+    /// </summary>
+    /// <typeparam name="..._Types">イベントの引数</typeparam>
     template <class... _Types>
     class Event : public EventBase
     {
-        Array<ListenerPair<_Types...>> m_listeners;
+        template <class... _Types>
+        struct ListenerPair {
+            void* pObj;
+            std::function<void(_Types...)>* pFunc;
+        };
 
-    protected:
+        Array<ListenerPair<_Types...>> m_listeners;
 
     public:
 
