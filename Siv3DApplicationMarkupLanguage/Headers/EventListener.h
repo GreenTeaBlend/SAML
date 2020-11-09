@@ -7,7 +7,7 @@ namespace s3d
     class Listener;
 
     /// <summary>
-    /// イベントを発行する側のクラス。登録されたListenerの関数を呼び出す。
+    /// イベント通知クラス。登録されたListenerや関数を呼び出す。
     /// </summary>
     /// <typeparam name="..._Args">イベントの引数</typeparam>
     template <class... _Args>
@@ -97,20 +97,27 @@ namespace s3d
             }
         }
 
+        /// <summary>
+        /// Listenerをhookする。
+        /// </summary>
         void operator+=(Listener<_Args...>& _listener) {
             append(_listener);
         }
 
+        /// <summary>
+        /// Listenerをunhookする。
+        /// </summary>
         void operator-=(Listener<_Args...>& _listener) {
             remove(_listener);
         }
 
-        ///// <summary>
-        ///// functionを直接hookする。(unhook不可)
-        ///// </summary>
-        //void operator+=(std::function<_Args...>& _function) {
-        //    append(_listener);
-        //}
+        /// <summary>
+        /// function/ラムダ式を直接hookする。(unhook不可)
+        /// </summary>
+        void operator+=(const std::function<void(_Args...)>& _function) {
+            auto spFunc = std::make_shared<std::function<void(_Args...)>>(_function);
+            m_listeners.push_back(ListenerPair<_Args...>{ nullptr, spFunc });
+        }
     };
 
     /// <summary>

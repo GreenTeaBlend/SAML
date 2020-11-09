@@ -37,9 +37,9 @@ void Main()
 	{
 		Event<int, int> event{};
 		auto listener = MemberListener(&Hoge::fuga2, &hoge);
-		auto listener2 = Listener(std::function([&](int value, int value2) {Console.writeln(U"func {} {}"_fmt(value, value2)); }));
 		event += listener;
-		event += listener2;
+		event += std::function([&](int value, int value2) {Console.writeln(U"stdfunc {} {}"_fmt(value, value2)); });
+		event += [&](int value, int value2) {Console.writeln(U"lumbda {} {}"_fmt(value, value2)); };
 		event.invoke(123, 456);
 	}
 
