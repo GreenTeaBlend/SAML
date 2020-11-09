@@ -3,50 +3,23 @@
 
 namespace s3d 
 {
-    /*
-    class EventBase;
-
-    /// <summary>
-    /// Listenerの抽象クラス
-    /// </summary>
-    /// <remarks></remarks>
-    class ListenerBase {
-        template <class... _Types>
-        friend class Event;
-        friend class EventBase;
-    protected:
-
-        EventBase* m_event;
-    public:
-        ListenerBase() = default;
-        virtual ~ListenerBase() =default;
-    };
-
-    class EventBase 
-    {
-    public:
-        virtual ~EventBase() = default;
-        virtual void remove(ListenerBase& _pKey) = 0;
-    };
-    */
-
-    template <class... _Types>
+    template <class... _Args>
     class Listener;
 
     /// <summary>
     /// イベントを発行する側のクラス。登録されたListenerの関数を呼び出す。
     /// </summary>
-    /// <typeparam name="..._Types">イベントの引数</typeparam>
-    template <class... _Types>
+    /// <typeparam name="..._Args">イベントの引数</typeparam>
+    template <class... _Args>
     class Event
     {
-        template <class... _Types>
+        template <class... _Args>
         struct ListenerPair {
-            Listener<_Types...>* pListener;
-            std::function<void(_Types...)>* pFunc;
+            Listener<_Args...>* pListener;
+            std::function<void(_Args...)>* pFunc;
         };
 
-        Array<ListenerPair<_Types...>> m_listeners;
+        Array<ListenerPair<_Args...>> m_listeners;
 
     public:
 
@@ -56,11 +29,11 @@ namespace s3d
 
         }
 
-        void invoke(_Types... _Args);
+        void invoke(_Args... _args);
 
-        void append(Listener<_Types...>& _listener);
+        void append(Listener<_Args...>& _listener);
 
-        void remove(Listener<_Types...>& _listener)
+        void remove(Listener<_Args...>& _listener)
         {
             for (auto it = m_listeners.begin(); it != m_listeners.end();) {
                 if (it->pListener == &_listener) {
@@ -74,11 +47,11 @@ namespace s3d
             _listener.m_event = nullptr;
         }
 
-        void operator+=(Listener<_Types...>& _listener) {
+        void operator+=(Listener<_Args...>& _listener) {
             append(_listener);
         }
 
-        void operator-=(Listener<_Types...>& _listener) {
+        void operator-=(Listener<_Args...>& _listener) {
             remove(_listener);
         }
     };
@@ -86,18 +59,18 @@ namespace s3d
     /// <summary>
     /// Eventクラスから通知を受け取るクラス
     /// </summary>
-    /// <typeparam name="..._Types">イベントの引数</typeparam>
-    template <class... _Types>
+    /// <typeparam name="..._Args">イベントの引数</typeparam>
+    template <class... _Args>
     class Listener  {
-        template <class... _Types>
+        template <class... _Args>
         friend class Event;
     protected:
 
-        Event<_Types...>* m_event;
+        Event<_Args...>* m_event;
 
-        std::function<void(_Types...)> m_function;
+        std::function<void(_Args...)> m_function;
     public:
-        Listener(std::function<void(_Types...)> _function) :
+        Listener(std::function<void(_Args...)> _function) :
             m_function(_function)
         {
         }
@@ -110,14 +83,14 @@ namespace s3d
         }
     };
 
-    template <typename T>
-    constexpr bool false_v = false;
-
     /// <summary>
     /// Eventクラスから通知を受け取り、登録されたメンバ関数を呼び出すクラス。
     /// </summary>
     template <class T, class... _Args>
     class MemberListener : public Listener<_Args...> {
+        // Asset用変数
+        constexpr static bool false_v = false;
+        // _Argsの引数の個数
         static constexpr unsigned long long size = sizeof...(_Args);
     public:
         MemberListener(void(T::*&& _func)(_Args...), T*&& _obj) :
@@ -148,24 +121,24 @@ namespace s3d
                 );
             }
             else {
-                static_assert(false_v<T>, "MemberListener does not expect more than 4 arguments.");
+                static_assert(false_v, "MemberListener does not expect more than 4 arguments.");
                 return nullptr;
             }
         }
     };
 
-    template <class... _Types>
-    void Event<_Types...>::invoke(_Types... _Args)
+    template <class... _Args>
+    void Event<_Args...>::invoke(_Args... _args)
     {
         for (auto& pair : m_listeners) {
-            (*pair.pFunc)(_Args...);
+            (*pair.pFunc)(_args...);
         }
     }
 
-    template <class... _Types>
-    void Event<_Types...>::append(Listener<_Types...>& _listener)
+    template <class... _Args>
+    void Event<_Args...>::append(Listener<_Args...>& _listener)
     {
-        m_listeners.push_back(ListenerPair<_Types...>{ &_listener, & _listener.m_function });
+        m_listeners.push_back(ListenerPair<_Args...>{ &_listener, & _listener.m_function });
         _listener.m_event = this;
     }
 }
