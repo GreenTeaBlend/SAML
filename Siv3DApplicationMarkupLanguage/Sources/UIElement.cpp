@@ -93,7 +93,7 @@ void UIElement::setProperty(const String& propName, const String& value)
 
 void UIElement::setParent(std::shared_ptr<UIElement> parent)
 {
-    if (parent != nullptr) 
+    if (parent != nullptr)
     {
         if (m_parent != nullptr) {
             throw Error(U"UIElementのParentは変更できません。 name={}, m_parent={}, parent={} @UIElement::setParent"_fmt(this->className(), m_parent->className(), parent->className()));
@@ -107,30 +107,33 @@ void UIElement::setParent(std::shared_ptr<UIElement> parent)
             throw Error(U"UIElementのParentはすでにNULLです。 name={} @UIElement::setParent"_fmt(this->className()));
         }
 
-#if _DEBUG
-        // m_parentのchildrenに自身が1つのみ登録されていることを確かめる。
-        bool foundChild = false;
+#ifndef _DEBUG
+        // m_parentのchildrenから自身を削除
+        for (auto it = m_parent->m_children.begin(); it != m_parent->m_children.end(); ++it ) {
+            if (*it == this) {
+                m_parent->m_children.erase(it);
+                break;
+            }
+        }
+#else
+        // Debugモードなら、m_parentのchildrenに自身が1つのみ登録されていることを確かめる。
+        int deleteCount = 0;
         for (auto it = m_parent->m_children.begin(); it != m_parent->m_children.end(); ) {
             if (*it == this) {
                 it = m_parent->m_children.erase(it);
-
-                if (!foundChild) {
-                    foundChild = true;
-                }
-                else {
-                    throw Error(U"2つ以上のChildrenがヒットしました @UIElement::setParent");
-                }
+                ++deleteCount;
             }
             else {
                 ++it;
             }
         }
 
-        if (!foundChild) {
+        if (deleteCount == 0) {
             throw Error(U"引数のChildが見つかりませんでした。 @UIElement::setParent");
         }
-#else
-        std::remove(m_parent->m_children.begin(), m_parent->m_children.end(), this);
+        else if (deleteCount >= 2) {
+            throw Error(U"2つ以上のChildrenがヒットしました @UIElement::setParent");
+        }
 #endif
     }
 

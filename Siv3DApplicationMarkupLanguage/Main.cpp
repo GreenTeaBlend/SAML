@@ -41,8 +41,6 @@ void Main()
 		event.invoke(123, 456);
 	}
 
-	//event.invoke(456);
-
 	Window::Resize(1000, 600);
 
 	// 背景を水色にする
