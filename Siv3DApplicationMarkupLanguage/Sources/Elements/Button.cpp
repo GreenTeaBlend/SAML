@@ -8,7 +8,6 @@ Button::Button(UIPanel& panel) :
     m_text(U"button"),
     m_font(20)
 {
-
 }
 
 void Button::enumratePropertyData(HashTable<String, PropertySetter>* datas)
