@@ -1,5 +1,6 @@
 #include "Elements/TextBox.h"
 #include "UITextIndexer.h"
+#include "EventListener.h"
 
 using namespace s3d;
 using namespace SamlUI;
@@ -95,10 +96,9 @@ SamlUI::TextBox::TextBox(UIPanel& panel) :
     m_scrollView(new ScrollView()),
     m_selectRange()
 {
-    auto* func = new std::function<void()>([&]() {
+    getTransformChangedEvent() += [&]() {
         m_scrollView->setRect(RectF{ getPosition(), getSize() });
-        });
-    hookTransformChangedEvent(func);
+        };
 }
 
 void SamlUI::TextBox::enumratePropertyData(HashTable<String, PropertySetter>* datas)

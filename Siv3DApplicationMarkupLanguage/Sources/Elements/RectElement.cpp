@@ -1,4 +1,5 @@
 #include "Elements/RectElement.h"
+#include "EventListener.h"
 
 using namespace s3d;
 using namespace SamlUI;
@@ -7,7 +8,13 @@ RectElement::RectElement(UIPanel& panel) :
     UIElement(panel),
     m_pos(0, 0),
     m_size(50, 50),
-    m_isPosDirty(true)
+    m_isPosDirty(true),
+    m_transformChangedEvent(new Event<>())
+{
+
+}
+
+RectElement::~RectElement()
 {
 
 }
@@ -51,4 +58,14 @@ const Vec2& RectElement::getPosition() {
     }
 
     return m_pos;
+}
+
+void RectElement::invokeTransformChangedEvent()
+{
+    m_transformChangedEvent->invoke();
+}
+
+Event<>& RectElement::getTransformChangedEvent() const
+{
+    return *m_transformChangedEvent;
 }
