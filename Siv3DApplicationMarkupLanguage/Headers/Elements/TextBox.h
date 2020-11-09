@@ -39,6 +39,12 @@ namespace s3d::SamlUI
         // 文字の選択範囲
         Optional<IndexRange> m_selectRange;
 
+        // キー長押しによるカーソル移動のためのタイマー
+        Stopwatch m_keyPressStopwatch;
+
+        // カーソル点滅タイマー
+        Stopwatch m_cursorStopwatch;
+
         // 文字編集の更新処理
         void updateText();
         // マウス関連の更新処理

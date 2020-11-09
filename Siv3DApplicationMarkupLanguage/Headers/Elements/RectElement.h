@@ -55,6 +55,6 @@ namespace s3d::SamlUI
 
         const Vec2& getPosition();
 
-        Event<>& getTransformChangedEvent() const;
+        Event<>& getTransformChangedEvent() const { return *m_transformChangedEvent; }
     };
 }

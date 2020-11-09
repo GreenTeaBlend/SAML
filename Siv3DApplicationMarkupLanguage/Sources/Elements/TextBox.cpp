@@ -94,11 +94,15 @@ SamlUI::TextBox::TextBox(UIPanel& panel) :
     m_lines(),
     m_cursorPos(3),
     m_scrollView(new ScrollView()),
-    m_selectRange()
+    m_selectRange(),
+    m_keyPressStopwatch(),
+    m_cursorStopwatch()
 {
     getTransformChangedEvent() += [&]() {
         m_scrollView->setRect(RectF{ getPosition(), getSize() });
         };
+
+    m_keyPressStopwatch.start();
 }
 
 void SamlUI::TextBox::enumratePropertyData(HashTable<String, PropertySetter>* datas)
@@ -123,9 +127,10 @@ void SamlUI::TextBox::draw()
     // 文字入力
     updateText();
 
-    // カーソル移動
+    // キー入力によるカーソル移動
     updateCursor();
 
+    // クリック・ドラッグなど処理
     updateMouse();
 
     // スクロールバーと内側の描画
@@ -164,13 +169,13 @@ SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
             const String::value_type& c = indexer.currentChar();
             if (c != U'\n' && c != U'\r') {
                 m_font(c).draw(region.pos, Palette::Black);
-                widthMax = Max(widthMax, (region.br().x - textTL.x));
-                heightMax = Max(heightMax, (region.br().y - textTL.y));
+                widthMax = Max(widthMax, region.br().x);
+                heightMax = Max(heightMax, region.br().y);
             }
             else if (c == U'\n') {
                 // 最後に改行文字で終了したときのために、改行後の文字の下端の座標をheightMaxに設定。
                 double y = region.y + indexer.currentHeight() + m_font(U' ').region().h;
-                heightMax = (y - textTL.y);
+                heightMax = y;
             }
         }
 
@@ -304,11 +309,22 @@ void SamlUI::TextBox::updateCursor()
     size_t cursorPos = m_cursorPos;
 
     // 左右移動
-    if (KeyRight.down()) { cursorPos++; }
-    if (KeyLeft.down()) { cursorPos = cursorPos >= 1 ? cursorPos - 1 : 0; }
+    if (KeyRight.down() || (KeyRight.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(0.06)))
+    {
+        m_keyPressStopwatch.restart();
+        cursorPos++; 
+    }
+    if (KeyLeft.down() || (KeyLeft.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(0.06)))
+    {
+        m_keyPressStopwatch.restart();
+        cursorPos = cursorPos >= 1 ? cursorPos - 1 : 0; 
+    }
 
     // 上の行に移動
-    if (KeyUp.down()) {
+    if (KeyUp.down() || (KeyUp.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(0.06)))
+    {
+        m_keyPressStopwatch.restart();
+
         size_t lineIndex = getLineIndexOf(m_cursorPos, m_lines);
         if (lineIndex != 0) {
             // 現在のカーソルのx座標を取得する。
@@ -327,7 +343,10 @@ void SamlUI::TextBox::updateCursor()
     }
 
     // 下の行に移動
-    if (KeyDown.down()) {
+    if (KeyDown.down() || (KeyDown.pressedDuration() > SecondsF(0.33) && m_keyPressStopwatch > SecondsF(0.06)))
+    {
+        m_keyPressStopwatch.restart();
+
         size_t lineIndex = getLineIndexOf(m_cursorPos, m_lines);
         if (lineIndex + 1 == m_lines.size()) {
             if (m_text.ends_with(U'\n')) {

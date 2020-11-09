@@ -64,8 +64,3 @@ void RectElement::invokeTransformChangedEvent()
 {
     m_transformChangedEvent->invoke();
 }
-
-Event<>& RectElement::getTransformChangedEvent() const
-{
-    return *m_transformChangedEvent;
-}

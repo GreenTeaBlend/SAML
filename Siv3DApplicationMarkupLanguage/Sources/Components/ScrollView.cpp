@@ -28,15 +28,17 @@ void ScrollView::draw(std::function<s3d::SizeF(bool)> drawInner, bool)
     // (描画前にスクロールバーの表示判定をしたい)
     m_horizontalBarState.visible = true;
     m_verticalBarState.visible = true;
-    RectF innerRegion{ rect.pos, rect.w - (m_verticalBarState.visible ? m_verticalBarThickness : 0), rect.h - (m_horizontalBarState.visible ? m_horizontalBarThickness : 0) };
-    bool mouseoverBar = innerRegion.mouseOver();
+
+    // スクロールバーを除いた、内側パネルの描画領域。
+    RectF frameRect{ rect.pos, rect.w - (m_verticalBarState.visible ? m_verticalBarThickness : 0), rect.h - (m_horizontalBarState.visible ? m_horizontalBarThickness : 0) };
+    bool mouseoverBar = frameRect.mouseOver();
 
     // ステンシル矩形の設定
     RasterizerState rstatePre = Graphics2D::GetRasterizerState();
     RasterizerState rstateScissor = rstatePre;
     rstateScissor.scissorEnable = true;
     Graphics2D::Internal::SetRasterizerState(rstateScissor);
-    Graphics2D::SetScissorRect(innerRegion);
+    Graphics2D::SetScissorRect(frameRect);
 
     // 内側を描画
     SizeF innerSize;
@@ -49,13 +51,13 @@ void ScrollView::draw(std::function<s3d::SizeF(bool)> drawInner, bool)
     Graphics2D::Internal::SetRasterizerState(rstatePre);
 
     // スクロールバーの状態の設定
-    if (innerRegion.w >= 0.0001 && innerRegion.h >= 0.0001)
+    if (innerSize.x >= 0.0001 && innerSize.y >= 0.0001)
     {
         m_horizontalBarState.actualSize = innerSize.x;
         m_verticalBarState.actualSize = innerSize.y;
 
-        m_horizontalBarState.length = innerSize.x > 1.0 ? Min(innerRegion.w / innerSize.x, 1.0) : 1.0;
-        m_verticalBarState.length = innerSize.y > 1.0 ? Min(innerRegion.h / innerSize.y, 1.0) : 1.0;
+        m_horizontalBarState.length = innerSize.x > 1.0 ? Min(frameRect.w / innerSize.x, 1.0) : 1.0;
+        m_verticalBarState.length = innerSize.y > 1.0 ? Min(frameRect.h / innerSize.y, 1.0) : 1.0;
 
         double wheel = WHEEL_SPEED * Mouse::Wheel();
         m_verticalBarState.pos += wheel / m_verticalBarState.actualSize;
@@ -149,16 +151,19 @@ void ScrollView::moveToShow(const RectF& region)
         return;
     }
 
-    // regionToShowの左側が見えるようになるためのバーの位置の最小値。以下、右上下についても同様。
+    // regionToShowの左側が見えるように移動する。
     double leftRelativePos = region.x / m_horizontalBarState.actualSize;
     if (m_horizontalBarState.pos > leftRelativePos) { m_horizontalBarState.pos = leftRelativePos; }
 
+    // 右側が見えるように移動
     double rightRelativePos = (region.x + region.w) / m_horizontalBarState.actualSize - m_horizontalBarState.length;
     if (m_horizontalBarState.pos < rightRelativePos) { m_horizontalBarState.pos = rightRelativePos; }
 
+    // 上側が見えるように移動
     double topRelativePos = region.y / m_verticalBarState.actualSize;
     if (m_verticalBarState.pos > topRelativePos) { m_verticalBarState.pos = topRelativePos; }
 
+    // 下側が見えるように移動
     double bottomRelativePos = (region.y + region.h) / m_verticalBarState.actualSize - m_verticalBarState.length;
     if (m_verticalBarState.pos < bottomRelativePos) { m_verticalBarState.pos = bottomRelativePos; }
 }
