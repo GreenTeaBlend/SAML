@@ -87,11 +87,6 @@ namespace {
     }
 }
 
-void Tekitou()
-{
-
-}
-
 SamlUI::TextBox::TextBox(UIPanel& panel) :
     RectElement(panel),
     m_font(20),
@@ -103,10 +98,6 @@ SamlUI::TextBox::TextBox(UIPanel& panel) :
     m_keyPressStopwatch(),
     m_cursorStopwatch()
 {
-    getTransformChangedEvent() += [&]() {
-        m_scrollView->setRect(RectF{ getPosition(), getSize() });
-        };
-
     m_keyPressStopwatch.start();
 }
 
@@ -137,6 +128,10 @@ void SamlUI::TextBox::draw()
 
     // クリック・ドラッグなど処理
     updateMouse();
+
+    // スクロールバーの矩形更新
+    // TODO:毎フレームsetRectするのはちょっと歪なので、ScrollView::draw()に毎回矩形を渡すようにする
+    m_scrollView->setRect(RectF{ getPosition(), getSize() });
 
     // スクロールバーと内側の描画
     m_scrollView->draw([&](bool isMouseOvered) {

@@ -9,7 +9,8 @@ using namespace SamlUI;
 UIPanel::UIPanel():
 	m_elements(),
 	m_mouseOveredElement(),
-	m_focusingElement()
+	m_focusingElement(),
+	m_rect(0, 0, Window::ClientSize())
 {
 	if (!UIElement::hasInitialized) {
 		UIElement::initialize();
@@ -85,7 +86,6 @@ std::shared_ptr<UIElement> UIPanel::createElementRecursively(const XMLElement& x
 	return uiElement;
 }
 
-
 void UIPanel::drawUpdate()
 {
 	std::shared_ptr<UIElement> mouseOveredElement;
@@ -129,4 +129,9 @@ void UIPanel::drawUpdate()
 			}
 		}
 	}
+}
+
+void UIPanel::setRect(const RectF& rect)
+{
+	m_rect = rect;
 }

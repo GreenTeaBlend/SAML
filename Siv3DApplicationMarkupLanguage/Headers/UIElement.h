@@ -30,9 +30,8 @@ namespace s3d::SamlUI
 
         String m_className;
 
-        // 親要素の設定 
-        // 現時点では生成後の変更は想定しておらず、また親要素から順に親子関係を確定させる。(子を持った要素を他要素の子にしない)
-        void setParent(std::shared_ptr<UIElement> parent);
+        // 座標関連の数値の更新が必要か。
+        bool m_isTransformDirty;
 
         // UIElementの情報を読み込む
         static void initialize();
@@ -69,6 +68,11 @@ namespace s3d::SamlUI
         virtual void onMouseOverChanged() {};
         virtual void onFocusChanged() {};
 
+        virtual void updateTransform();
+
+        // この要素とすべての子要素のm_isTransformDirtyをtrueにセットする。
+        void setTransformDirtyRecursively();
+
         // この型のプロパティ情報をdatasに追加する。
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
@@ -82,6 +86,8 @@ namespace s3d::SamlUI
         bool isMouseOvered() const;
         bool isFocusing() const;
 
+        /// <summary> 親要素 </summary>
+        virtual void setParent(const std::shared_ptr<UIElement>& parent);
         const std::shared_ptr<UIElement>& getParent() const { return m_parent; }
 
         /// <summary>
@@ -97,5 +103,7 @@ namespace s3d::SamlUI
 #endif
 
         const Array<UIElement*>& getChildren() const { return m_children; }
+
+        bool isTransformDirty() const { return m_isTransformDirty; }
     };
 }

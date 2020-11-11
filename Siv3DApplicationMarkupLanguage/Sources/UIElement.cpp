@@ -50,7 +50,8 @@ std::shared_ptr<UIElement> UIElement::create(const String& className, UIPanel& p
 UIElement::UIElement(UIPanel& panel):
     m_panel(panel),
     m_parent(),
-    m_name()
+    m_name(),
+    m_isTransformDirty(true)
 {
 }
 
@@ -91,51 +92,69 @@ void UIElement::setProperty(const String& propName, const String& value)
     typeInfo->second->getPropertySetter(this, propName, value);
 }
 
-void UIElement::setParent(std::shared_ptr<UIElement> parent)
+void UIElement::setParent(const std::shared_ptr<UIElement>& parent)
 {
-    if (parent != nullptr)
+    if (parent != m_parent) 
     {
+        // 前のParentのChildrenから自分を削除する。
         if (m_parent != nullptr) {
-            throw Error(U"UIElementのParentは変更できません。 name={}, m_parent={}, parent={} @UIElement::setParent"_fmt(this->className(), m_parent->className(), parent->className()));
-        }
-
-        parent->m_children.push_back(this);
-    }
-    else
-    {
-        if (m_parent == nullptr) {
-            throw Error(U"UIElementのParentはすでにNULLです。 name={} @UIElement::setParent"_fmt(this->className()));
-        }
-
 #ifndef _DEBUG
-        // m_parentのchildrenから自身を削除
-        for (auto it = m_parent->m_children.begin(); it != m_parent->m_children.end(); ++it ) {
-            if (*it == this) {
-                m_parent->m_children.erase(it);
-                break;
+            // m_parentのchildrenから自身を削除
+            for (auto it = m_parent->m_children.begin(); it != m_parent->m_children.end(); ++it) {
+                if (*it == this) {
+                    m_parent->m_children.erase(it);
+                    break;
+                }
             }
-        }
 #else
-        // Debugモードなら、m_parentのchildrenに自身が1つのみ登録されていることを確かめる。
-        int deleteCount = 0;
-        for (auto it = m_parent->m_children.begin(); it != m_parent->m_children.end(); ) {
-            if (*it == this) {
-                it = m_parent->m_children.erase(it);
-                ++deleteCount;
+            // Debugモードなら、m_parentのchildrenに自身が1つのみ登録されていることを確かめる。
+            int deleteCount = 0;
+            for (auto it = m_parent->m_children.begin(); it != m_parent->m_children.end(); ) {
+                if (*it == this) {
+                    it = m_parent->m_children.erase(it);
+                    ++deleteCount;
+                }
+                else {
+                    ++it;
+                }
             }
-            else {
-                ++it;
+
+            if (deleteCount == 0) {
+                throw Error(U"引数のChildが見つかりませんでした。 @UIElement::setParent");
             }
+            else if (deleteCount >= 2) {
+                throw Error(U"2つ以上のChildrenがヒットしました @UIElement::setParent");
+            }
+#endif
         }
 
-        if (deleteCount == 0) {
-            throw Error(U"引数のChildが見つかりませんでした。 @UIElement::setParent");
+        m_parent = parent;
+
+        // 新しいparentのChildrenに自分を削除する。
+        if (m_parent != nullptr)
+        {
+            m_parent->m_children.push_back(this);
         }
-        else if (deleteCount >= 2) {
-            throw Error(U"2つ以上のChildrenがヒットしました @UIElement::setParent");
-        }
-#endif
+
+        setTransformDirtyRecursively();
+    }
+}
+
+void UIElement::setTransformDirtyRecursively()
+{
+    if (!m_isTransformDirty) 
+    {
+        m_isTransformDirty = true;
+
+        // TransformChangedEventなど
     }
 
-    m_parent = parent;
+    for (auto child : getChildren()) {
+        child->setTransformDirtyRecursively();
+    }
+}
+
+void UIElement::updateTransform()
+{
+    m_isTransformDirty = false;
 }

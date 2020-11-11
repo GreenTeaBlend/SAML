@@ -53,8 +53,8 @@ void Main()
 
 	auto panel = SamlUI::UIPanel::create<SamlUI::TextBox>();
 	auto* textBox = dynamic_cast<SamlUI::TextBox*>(panel->getRoot().get());
-	textBox->setSize(Vec2{ 300, 400 });
-	textBox->setMargin(Vec4{ 50, 100, 0, 0 });
+	//textBox->setSize(Vec2{ 300, 400 });
+	textBox->setMargin(Vec4{ 50, 100, 20, 20 });
 
 	String initialXml =
 		String(U"<Button Margin=\"(50, 50, 0, 0)\">\n") +
@@ -84,9 +84,6 @@ void Main()
 			event2 += listener;
 		}
 
-		// エディタの描画
-		panel->drawUpdate();
-
 		if (TextInput::GetRawInput().length() != 0)
 		{
 			lastIputTime = Time::GetMicrosec();
@@ -109,5 +106,8 @@ void Main()
 		else {
 			font(previewError).drawAt(Scene::Center(), Palette::Black);
 		}
+
+		// エディタの描画
+		panel->drawUpdate();
 	}
 }
