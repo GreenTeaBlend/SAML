@@ -52,9 +52,10 @@ void Main()
 	const Font font(18);
 
 	auto panel = SamlUI::UIPanel::create<SamlUI::TextBox>();
+	panel->setRect(RectF(0, 0, 400, 600));
 	auto* textBox = dynamic_cast<SamlUI::TextBox*>(panel->getRoot().get());
 	//textBox->setSize(Vec2{ 300, 400 });
-	textBox->setMargin(Vec4{ 50, 100, 20, 20 });
+	//textBox->setMargin(Vec4{ 50, 100, 20, 20 });
 
 	String initialXml =
 		String(U"<Button Margin=\"(50, 50, 0, 0)\">\n") +
@@ -72,6 +73,8 @@ void Main()
 
 	while (System::Update())
 	{
+		// エディタの描画
+		panel->drawUpdate();
 
 		{
 			Event<int, int> event{};
@@ -95,19 +98,18 @@ void Main()
 		{
 			String xml = textBox->getText();
 			previewPanel = SamlUI::UIPanel::create(xml, &previewError);
+			if (previewPanel != nullptr) {
+				previewPanel->setRect(RectF(400, 0, 600, 600));
+			}
 			isTextEditted = false;
 		}
 
 		// プレビューの描画
 		if (previewPanel != nullptr) {
-			Transformer2D transformer{ Mat3x2::Translate(Vec2(400, 0)), true };
 			previewPanel->drawUpdate();
 		}
 		else {
 			font(previewError).drawAt(Scene::Center(), Palette::Black);
 		}
-
-		// エディタの描画
-		panel->drawUpdate();
 	}
 }

@@ -11,5 +11,25 @@ namespace s3d::SamlUI
     };
 
     [[nodiscard]] ScrollBarVisibility StringToScrollVarVisibility(const String& str);
-    [[nodiscard]] String ScrollVarVisibilityToString(ScrollBarVisibility);
+    [[nodiscard]] String ScrollVarVisibilityToString(ScrollBarVisibility value);
+
+    enum class HorizontalAlignment {
+        Left, // ¶‚ÉŠñ‚¹‚é
+        Right, // ‰E‚ÉŠñ‚¹‚é
+        Center, // ’†‰›‚ÉŠñ‚¹‚é
+        Stretch // ¶‰E—¼•û‚ÉL‚°‚é
+    };
+
+    [[nodiscard]] HorizontalAlignment StringToHorizontalAlignment(const String& str);
+    [[nodiscard]] String HorizontalAlignmentToString(HorizontalAlignment value);
+
+    enum class VerticalAlignment {
+        Top, // ã‚ÉŠñ‚¹‚é
+        Bottom, // ‰º‚ÉŠñ‚¹‚é
+        Center, // ’†‰›‚ÉŠñ‚¹‚é
+        Stretch // ã‰º—¼•û‚ÉL‚°‚é
+    };
+
+    [[nodiscard]] VerticalAlignment StringToVerticalAlignment(const String& str);
+    [[nodiscard]] String VerticalAlignmentToString(VerticalAlignment value);
 }
