@@ -111,9 +111,6 @@
     <ClCompile Include="Sources\Elements\TextBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Elements\RectElement.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\UIElementTypeInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -410,9 +407,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\Elements\TextBox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Elements\RectElement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\UIElementTypeInfo.h">

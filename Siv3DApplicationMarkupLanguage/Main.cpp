@@ -8,41 +8,8 @@
 #include "EventListener.h"
 using namespace s3d;
 
-class Hoge {
-public:
-	void fuga(int value) {
-		Console.writeln(U"fuga {}"_fmt(value));
-	}
-	void fuga2(int value, int value2) {
-		Console.writeln(U"fuga2 {} {}"_fmt(value, value2));
-	}
-	void fuga3() {
-		Console.writeln(U"fuga3");
-	}
-};
-
 void Main()
 {
-	Hoge hoge{};
-
-	{
-		Event event{};
-		auto listener = MemberListener(&Hoge::fuga3, &hoge);
-		event += listener;
-		event.invoke();
-		event -= listener;
-		event.invoke();
-	}
-
-	{
-		Event<int, int> event{};
-		auto listener = MemberListener(&Hoge::fuga2, &hoge);
-		event += listener;
-		event += std::function([&](int value, int value2) {Console.writeln(U"stdfunc {} {}"_fmt(value, value2)); });
-		event += [&](int value, int value2) {Console.writeln(U"lumbda {} {}"_fmt(value, value2)); };
-		event.invoke(123, 456);
-	}
-
 	Window::Resize(1000, 600);
 
 	// 背景を水色にする
@@ -69,23 +36,10 @@ void Main()
 	std::shared_ptr<SamlUI::UIPanel> previewPanel;
 	String previewError{};
 
-	Event<int, int> event2{};
-
 	while (System::Update())
 	{
 		// エディタの描画
 		panel->drawUpdate();
-
-		{
-			Event<int, int> event{};
-			auto listener = MemberListener(&Hoge::fuga2, &hoge);
-			event += listener;
-		}
-
-		{
-			auto listener = MemberListener(&Hoge::fuga2, &hoge);
-			event2 += listener;
-		}
 
 		if (TextInput::GetRawInput().length() != 0)
 		{

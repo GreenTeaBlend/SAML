@@ -1,11 +1,11 @@
 #pragma once
 #include <Siv3D.hpp>
-#include "RectElement.h"
+#include "UIElement.h"
 #include "Components/ScrollView.h"
 
 namespace s3d::SamlUI
 {
-    class TextBox : public RectElement
+    class TextBox : public UIElement
     {
     public:
         struct LineInfo {
@@ -66,15 +66,6 @@ namespace s3d::SamlUI
 
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
-
-        //virtual void setPosition(const Vec2& pos) override {
-        //    RectElement::setPosition(pos); 
-        //    m_scrollView->setRect(RectF{ pos, m_scrollView->getRect().size }); 
-        //}
-        //virtual void setSize(const Vec2& size) {
-        //    RectElement::setSize(size);
-        //    m_scrollView->setRect(RectF{ m_scrollView->getRect().pos, size });
-        //}
 
         const String& getText() const { return m_text; }
         void setText(const String& text);

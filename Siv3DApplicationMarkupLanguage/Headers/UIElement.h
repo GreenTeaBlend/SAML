@@ -1,5 +1,6 @@
 #pragma once
 #include <Siv3D.hpp>
+#include "Contants.h"
 
 namespace s3d::SamlUI
 {
@@ -26,9 +27,24 @@ namespace s3d::SamlUI
         std::shared_ptr<UIElement> m_parent;
         Array<UIElement*> m_children;
 
+        // 他要素との余白 (右上左下)
+        Optional<Vec4> m_margin;
+
+        // サイズ設定値 (m_marginより優先)
+        Optional<Vec2> m_size;
+
+        Optional<HorizontalAlignment> m_horizontalAlignment;
+        Optional<VerticalAlignment> m_verticalAlignment;
+
         UIPanel& m_panel;
 
         String m_className;
+
+        // 最後に計算した大きさ (親要素に合わせて変化する)
+        Vec2 m_currentSize;
+
+        // 最後に計算した座標 (親要素に合わせて変化する)
+        Vec2 m_currentPos;
 
         // 座標関連の数値の更新が必要か。
         bool m_isTransformDirty;
@@ -68,7 +84,7 @@ namespace s3d::SamlUI
         virtual void onMouseOverChanged() {};
         virtual void onFocusChanged() {};
 
-        virtual void updateTransform();
+        void updateTransform();
 
         // この要素とすべての子要素のm_isTransformDirtyをtrueにセットする。
         void setTransformDirtyRecursively();
@@ -105,5 +121,31 @@ namespace s3d::SamlUI
         const Array<UIElement*>& getChildren() const { return m_children; }
 
         bool isTransformDirty() const { return m_isTransformDirty; }
+
+        const Optional<Vec4>& getMargin() const { return m_margin; }
+        void setMargin(const Optional<Vec4>& margin);
+
+        const Optional<Vec2>& getSize() const { return m_size; }
+        void setSize(const Optional<Vec2>& size);
+
+        const Optional<HorizontalAlignment>& getHorizontalAlignment() const { return m_horizontalAlignment; }
+        void setHorizontalAlignment(const Optional<HorizontalAlignment>& alignment);
+
+        const Optional<VerticalAlignment>& getVerticalAlignment() const { return m_verticalAlignment; }
+        void setVerticalAlignment(const Optional<VerticalAlignment>& alignment);
+
+        const Vec2& getSize() {
+            if (isTransformDirty()) {
+                updateTransform();
+            }
+            return m_currentSize;
+        }
+
+        const Vec2& getPosition() {
+            if (isTransformDirty()) {
+                updateTransform();
+            }
+            return m_currentPos;
+        }
     };
 }

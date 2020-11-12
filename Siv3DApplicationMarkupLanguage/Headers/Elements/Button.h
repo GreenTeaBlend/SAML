@@ -1,10 +1,10 @@
 #pragma once
 #include <Siv3D.hpp>
-#include "RectElement.h"
+#include "UIElement.h"
 
 namespace s3d::SamlUI
 {
-    class Button : public RectElement
+    class Button : public UIElement
     {
         String m_text;
 

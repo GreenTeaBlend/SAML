@@ -4,7 +4,7 @@ using namespace s3d;
 using namespace SamlUI;
 
 Button::Button(UIPanel& panel) :
-	RectElement(panel),
+	UIElement(panel),
     m_text(U"button"),
     m_font(20)
 {
@@ -17,7 +17,7 @@ void Button::enumratePropertyData(HashTable<String, PropertySetter>* datas)
             ((Button*)elm)->m_text = value;
         }));
 
-    RectElement::enumratePropertyData(datas);
+	UIElement::enumratePropertyData(datas);
 }
 
 void Button::draw()

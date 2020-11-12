@@ -88,7 +88,7 @@ namespace {
 }
 
 SamlUI::TextBox::TextBox(UIPanel& panel) :
-    RectElement(panel),
+    UIElement(panel),
     m_font(20),
     m_text(U""),
     m_lines(),
@@ -115,7 +115,7 @@ void SamlUI::TextBox::enumratePropertyData(HashTable<String, PropertySetter>* da
             ((SamlUI::TextBox*)elm)->setHorizontalScrollBarVisibility(visibility);
         }));
 
-    RectElement::enumratePropertyData(datas);
+    UIElement::enumratePropertyData(datas);
 }
 
 void SamlUI::TextBox::draw()
