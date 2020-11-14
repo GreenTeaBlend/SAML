@@ -6,10 +6,32 @@
 #include "UIElement.h"
 #include "Elements/TextBox.h"
 #include "EventListener.h"
+#include "BindableObject.h"
 using namespace s3d;
+
+class Hoge : public s3d::SamlUI::BindableObject
+{
+public:
+	String m_text{};
+	void setText(const String& text) {
+		m_text = text;
+		raisePropertyChanged(U"HogeText");
+	}
+
+	Hoge() {
+		registerProperty<String>(U"HogeText",
+			[&](String& value) {
+				value = this->m_text;
+			},
+			[&](const String& value) { this->m_text = value; }
+		);
+	}
+};
 
 void Main()
 {
+	Hoge hoge;
+
 	Window::Resize(1000, 600);
 
 	// 背景を水色にする
@@ -26,7 +48,7 @@ void Main()
 
 	String initialXml =
 		String(U"<Button Margin=\"(50, 50, 0, 0)\">\n") +
-		U"\t<Button Margin=\"(0, 100, 0, 0)\"/>\n" +
+		U"\t<TextBox Margin=\"(0, 100, 0, 0)\"/>\n" +
 		U"</Button>\n";
 	textBox->setText(initialXml);
 
@@ -38,6 +60,10 @@ void Main()
 
 	while (System::Update())
 	{
+		if (MouseR.down()) {
+			hoge.setText(U"{}"_fmt(Time::GetMillisec()));
+		}
+
 		// エディタの描画
 		panel->drawUpdate();
 
@@ -54,6 +80,7 @@ void Main()
 			previewPanel = SamlUI::UIPanel::create(xml, &previewError);
 			if (previewPanel != nullptr) {
 				previewPanel->setRect(RectF(400, 0, 600, 600));
+				previewPanel->setDataContext(hoge);
 			}
 			isTextEditted = false;
 		}

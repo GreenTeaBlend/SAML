@@ -3,6 +3,7 @@
 #include "UIElementTypeInfo.h"
 #include "Elements/Button.h"
 #include "Elements/TextBox.h"
+#include "BindableObject.h"
 
 using namespace s3d;
 using namespace SamlUI;
@@ -48,6 +49,7 @@ std::shared_ptr<UIElement> UIElement::create(const String& className, UIPanel& p
 UIElement::UIElement(UIPanel& panel):
     m_panel(panel),
     m_parent(),
+    m_dataContext(),
     m_name(),
     m_margin(),
     m_size(),
@@ -64,6 +66,8 @@ UIElement::~UIElement()
     if (m_parent != nullptr) {
         setParent(nullptr);
     }
+
+    setDataContext(nullptr);
 }
 
 bool UIElement::isMouseOvered() const
@@ -104,6 +108,53 @@ void UIElement::enumratePropertyData(HashTable<String, PropertySetter>* datas)
             auto alignment = StringToVerticalAlignment(value);
             elm->setVerticalAlignment(alignment);
         }));
+}
+
+void UIElement::onPropertyChangedRecursively(const String& name)
+{
+    onPropertyChanged(name);
+
+    // 自分の子要素のうち、DataContextが設定されていないもの(親の設定を引き継ぐもの)を再帰的に呼ぶ。
+    for (auto* child : m_children) {
+        if (child->m_dataContext == nullptr) {
+            child->onPropertyChangedRecursively(name);
+        }
+    }
+}
+
+void UIElement::onPropertyChanged(const String& name)
+{
+}
+
+BindableObject* UIElement::getCurrentDataContext() const
+{
+    for (const UIElement* element = this; element != nullptr; element = element->m_parent.get()) {
+        if (element->m_dataContext != nullptr) {
+            return element->m_dataContext;
+        }
+    }
+
+    return nullptr;
+}
+
+void UIElement::setDataContext(BindableObject* data)
+{
+    if (m_dataContext != data) {
+        if (m_dataContext != nullptr) {
+            Array<UIElement*>& elements = m_dataContext->m_elements;
+            for (auto it = elements.begin(); it != elements.end(); ++it) {
+                if (*it != this) {
+                    elements.erase(it);
+                }
+            }
+        }
+
+        m_dataContext = data;
+
+        if (m_dataContext != nullptr) {
+            m_dataContext->m_elements.push_back(this);
+        }
+    }
 }
 
 void UIElement::setProperty(const String& propName, const String& value)

@@ -1,6 +1,7 @@
 #include "Elements/TextBox.h"
 #include "UITextIndexer.h"
 #include "EventListener.h"
+#include "BindableObject.h"
 
 using namespace s3d;
 using namespace SamlUI;
@@ -116,6 +117,20 @@ void SamlUI::TextBox::enumratePropertyData(HashTable<String, PropertySetter>* da
         }));
 
     UIElement::enumratePropertyData(datas);
+}
+
+void SamlUI::TextBox::onPropertyChanged(const String& name)
+{
+    BindableObject* obj = getCurrentDataContext();
+    if (obj == nullptr) {
+        return;
+    }
+
+    if (name == U"HogeText") {
+        String text{};
+        obj->getValue(name, text);
+        setText(text);
+    }
 }
 
 void SamlUI::TextBox::draw()

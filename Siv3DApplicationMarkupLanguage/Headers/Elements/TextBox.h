@@ -27,6 +27,7 @@ namespace s3d::SamlUI
         Font m_font;
 
         String m_text;
+        String m_textBindingProperty;
 
         size_t m_cursorPos;
 
@@ -63,6 +64,9 @@ namespace s3d::SamlUI
         friend class UIElement;
         friend class UIPanel;
         TextBox(UIPanel& panel);
+
+        // BindされているDataContextのプロパティ変更通知。
+        virtual void onPropertyChanged(const String& name);
 
     public:
         static void enumratePropertyData(HashTable<String, PropertySetter>* datas);

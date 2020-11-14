@@ -4,6 +4,7 @@
 namespace s3d::SamlUI
 {
     class UIElement;
+    class BindableObject;
 
     /// <summary>
     /// UIElementインスタンスを保持するManagerクラス。
@@ -84,5 +85,7 @@ namespace s3d::SamlUI
         /// フォーカス中の要素
         /// </summary>
         const std::shared_ptr<UIElement>& getFocusingElementconst() const { return m_focusingElement; }
+
+        void setDataContext(BindableObject& data);
     };
 }

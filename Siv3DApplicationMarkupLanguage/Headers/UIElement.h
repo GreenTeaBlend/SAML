@@ -7,6 +7,7 @@ namespace s3d::SamlUI
     class UIPanel;
     class UIElementTypeInfo;
     class UIElement;
+    class BindableObject;
     using PropertySetter = std::function<void(s3d::SamlUI::UIElement*, const s3d::String&)>;
     using SpElement = std::shared_ptr<UIElement>;
 
@@ -15,7 +16,8 @@ namespace s3d::SamlUI
     /// </summary>
     class UIElement 
     {
-        friend class UIPanel;
+        friend UIPanel;
+        friend BindableObject;
 
         static bool hasInitialized;
 
@@ -49,6 +51,8 @@ namespace s3d::SamlUI
         // 座標関連の数値の更新が必要か。
         bool m_isTransformDirty;
 
+        BindableObject* m_dataContext;
+
         // UIElementの情報を読み込む
         static void initialize();
 
@@ -81,8 +85,18 @@ namespace s3d::SamlUI
 
         UIElement(UIPanel& panel);
 
+        // 現在BindされているObjectを取得する。(再帰的に親も参照)
+        BindableObject* getCurrentDataContext() const;
+        void setDataContext(BindableObject* data);
+
         virtual void onMouseOverChanged() {};
         virtual void onFocusChanged() {};
+
+        // BindされているDataContextのプロパティ変更通知。
+        void onPropertyChangedRecursively(const String& name);
+
+        // BindされているDataContextのプロパティ変更通知。
+        virtual void onPropertyChanged(const String& name);
 
         void updateTransform();
 

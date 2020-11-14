@@ -135,3 +135,10 @@ void UIPanel::setRect(const RectF& rect)
 {
 	m_rect = rect;
 }
+
+void UIPanel::setDataContext(BindableObject& data)
+{
+	if (m_rootElement != nullptr) {
+		m_rootElement->setDataContext(&data);
+	}
+}
