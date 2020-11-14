@@ -127,9 +127,10 @@ void SamlUI::TextBox::onPropertyChanged(const String& name)
     }
 
     if (name == U"HogeText") {
-        String text{};
-        obj->getValue(name, text);
-        setText(text);
+        auto spText = obj->getValue<String>(name);
+        if (spText != nullptr) {
+            setText(*spText);
+        }
     }
 }
 

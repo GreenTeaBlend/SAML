@@ -250,6 +250,7 @@
     <ClInclude Include="Headers\Components\ScrollView.h" />
     <ClInclude Include="Headers\Contants.h" />
     <ClInclude Include="Headers\Elements\Button.h" />
+    <ClInclude Include="Headers\Elements\ListView.h" />
     <ClInclude Include="Headers\Elements\TextBox.h" />
     <ClInclude Include="Headers\EventListener.h" />
     <ClInclude Include="Headers\UIPanel.h" />

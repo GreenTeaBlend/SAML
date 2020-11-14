@@ -9,21 +9,38 @@
 #include "BindableObject.h"
 using namespace s3d;
 
+//class MenuITem : public s3d::SamlUI::BindableObject
+//{
+//public:
+//	String m_text{};
+//	void setText(const String& text) {
+//		m_text = text;
+//		raisePropertyChanged(U"HogeText");
+//	}
+//
+//	Hoge(String text) {
+//		registerProperty<String>(U"HogeText",
+//			[&](String& value) {
+//				value = this->m_text;
+//			},
+//			[&](const String& value) { this->m_text = value; }
+//			);
+//	}
+//};
+
 class Hoge : public s3d::SamlUI::BindableObject
 {
+	std::shared_ptr<String> m_text = std::shared_ptr<String>(new String());
 public:
-	String m_text{};
 	void setText(const String& text) {
-		m_text = text;
+		(*m_text) = text;
 		raisePropertyChanged(U"HogeText");
 	}
 
 	Hoge() {
 		registerProperty<String>(U"HogeText",
-			[&](String& value) {
-				value = this->m_text;
-			},
-			[&](const String& value) { this->m_text = value; }
+			[&]() { return m_text; },
+			[&](const String& value) { (*m_text) = value; }
 		);
 	}
 };

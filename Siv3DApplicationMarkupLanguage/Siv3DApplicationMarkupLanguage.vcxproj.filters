@@ -433,5 +433,8 @@
     <ClInclude Include="Headers\BindableObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\Elements\ListView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
