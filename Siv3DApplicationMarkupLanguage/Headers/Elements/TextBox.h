@@ -46,6 +46,8 @@ namespace s3d::SamlUI
         // カーソル点滅タイマー
         Stopwatch m_cursorStopwatch;
 
+        bool m_isFocused;
+
         // 文字編集の更新処理
         void updateText();
         // マウス関連の更新処理
@@ -61,19 +63,17 @@ namespace s3d::SamlUI
 
     protected:
 
-        friend class UIElement;
-        friend class UIPanel;
-        TextBox(UIPanel& panel);
-
-        // BindされているDataContextのプロパティ変更通知。
-        virtual void onPropertyChanged(const String& name);
+        /// <summary>
+        /// 描画する。
+        /// </summary>
+        void onDraw();
 
     public:
-        static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
+
+        TextBox();
 
         const String& getText() const { return m_text; }
         void setText(const String& text);
-        void insertText(const String& text, size_t index);
 
         ScrollBarVisibility isHorizontalScrollBarVisibility() const { return m_scrollView->getBarVisibility(ScrollBarDirection::Horizontal); }
         void setHorizontalScrollBarVisibility(ScrollBarVisibility visibility) { m_scrollView->setBarVisibility(ScrollBarDirection::Horizontal, visibility); }
@@ -83,7 +83,5 @@ namespace s3d::SamlUI
 
         // カーソルの位置をセットする。第二引数がtrueの場合、カーソルが表示位置に収まるようスクロールが行われます。
         void setCursorPos(size_t pos, bool moveView);
-
-        virtual void draw() override;
     };
 }

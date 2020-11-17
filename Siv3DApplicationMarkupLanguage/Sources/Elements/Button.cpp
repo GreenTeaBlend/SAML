@@ -3,29 +3,18 @@
 using namespace s3d;
 using namespace SamlUI;
 
-Button::Button(UIPanel& panel) :
-	UIElement(panel),
+Button::Button() :
     m_text(U"button"),
     m_font(20)
 {
 }
 
-void Button::enumratePropertyData(HashTable<String, PropertySetter>* datas)
-{
-    datas->insert(std::make_pair(U"Text",
-        [&](UIElement* elm, const String& value) {
-            ((Button*)elm)->m_text = value;
-        }));
-
-	UIElement::enumratePropertyData(datas);
-}
-
-void Button::draw()
+void Button::onDraw()
 {
 	//const int32 labelWidth = font(label).region().w;
 	//const double width = _width.value_or(labelWidth + 40);
 
-	const Rect rect{ getPosition().asPoint(), getSize().asPoint() };
+	const Rect rect{ getCurrentPosition().asPoint(), getCurrentSize().asPoint() };
 	//const Vec2 labelPos(static_cast<int32>(rect.x + (width - labelWidth) / 2), center.y - font.height() / 2);
 
 	const bool mouseOver = rect.rounded(4.8).mouseOver();

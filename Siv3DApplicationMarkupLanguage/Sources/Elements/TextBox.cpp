@@ -1,7 +1,6 @@
 #include "Elements/TextBox.h"
 #include "UITextIndexer.h"
 #include "EventListener.h"
-#include "BindableObject.h"
 
 using namespace s3d;
 using namespace SamlUI;
@@ -88,8 +87,7 @@ namespace {
     }
 }
 
-SamlUI::TextBox::TextBox(UIPanel& panel) :
-    UIElement(panel),
+SamlUI::TextBox::TextBox() :
     m_font(20),
     m_text(U""),
     m_lines(),
@@ -102,39 +100,7 @@ SamlUI::TextBox::TextBox(UIPanel& panel) :
     m_keyPressStopwatch.start();
 }
 
-void SamlUI::TextBox::enumratePropertyData(HashTable<String, PropertySetter>* datas)
-{
-    datas->insert(std::make_pair(U"VerticalScrollBarVisibility",
-        [&](UIElement* elm, const String& value) {
-            ScrollBarVisibility visibility = StringToScrollVarVisibility(value);
-            ((SamlUI::TextBox*)elm)->setVerticalScrollBarVisibility(visibility);
-        }));
-
-    datas->insert(std::make_pair(U"HorizontalScrollBarVisibility",
-        [&](UIElement* elm, const String& value) {
-            ScrollBarVisibility visibility = StringToScrollVarVisibility(value);
-            ((SamlUI::TextBox*)elm)->setHorizontalScrollBarVisibility(visibility);
-        }));
-
-    UIElement::enumratePropertyData(datas);
-}
-
-void SamlUI::TextBox::onPropertyChanged(const String& name)
-{
-    BindableObject* obj = getCurrentDataContext();
-    if (obj == nullptr) {
-        return;
-    }
-
-    if (name == U"HogeText") {
-        auto spText = obj->getValue<String>(name);
-        if (spText != nullptr) {
-            setText(*spText);
-        }
-    }
-}
-
-void SamlUI::TextBox::draw()
+void SamlUI::TextBox::onDraw()
 {
     // 文字入力
     updateText();
@@ -147,7 +113,7 @@ void SamlUI::TextBox::draw()
 
     // スクロールバーの矩形更新
     // TODO:毎フレームsetRectするのはちょっと歪なので、ScrollView::draw()に毎回矩形を渡すようにする
-    m_scrollView->setRect(RectF{ getPosition(), getSize() });
+    m_scrollView->setRect(RectF{ getCurrentPosition(), getCurrentSize() });
 
     // スクロールバーと内側の描画
     m_scrollView->draw([&](bool isMouseOvered) {
@@ -155,8 +121,8 @@ void SamlUI::TextBox::draw()
         }, isMouseOvered());
 
     // 枠線の描画
-    RectF rect{ getPosition(), getSize() };
-    if (isFocusing()) {
+    RectF rect{ getCurrentPosition(), getCurrentSize() };
+    if (m_isFocused) {
         rect.drawFrame(1, 2, Palette::Aqua);
     }
     else {
@@ -453,11 +419,17 @@ void SamlUI::TextBox::updateMouse()
         size_t index = calcCursorPos(textTL, mousePos, m_font, m_lines);
 
         // テキストボックスでクリック、もしくはドラッグ開始した → 範囲選択開始
-        if (isMouseOvered() && MouseL.down())
-        {
-            m_selectRange = IndexRange();
-            m_selectRange->start = index;
-            m_selectRange->current = index;
+        if (MouseL.down()) {
+            if (isMouseOvered())
+            {
+                m_selectRange = IndexRange();
+                m_selectRange->start = index;
+                m_selectRange->current = index;
+                m_isFocused = true;
+            }
+            else {
+                m_isFocused = false;
+            }
         }
 
         // テキストボックス上でドラッグを開始した場合、ドラッグしている限りは選択範囲を更新する。
@@ -504,9 +476,4 @@ void SamlUI::TextBox::setText(const String& text)
             currentLine->height = Max(currentLine->height, indexer.currentRegion().h);
         }
     }
-}
-
-void SamlUI::TextBox::insertText(const String& text, size_t index)
-{
-
 }

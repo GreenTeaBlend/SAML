@@ -4,41 +4,27 @@
 
 namespace s3d::SamlUI
 {
-    class UIPanel;
-    class UIElementTypeInfo;
-    class UIElement;
-    class BindableObject;
-    using PropertySetter = std::function<void(s3d::SamlUI::UIElement*, const s3d::String&)>;
-    using SpElement = std::shared_ptr<UIElement>;
-
     /// <summary>
     /// UI要素の基底クラス
     /// </summary>
     class UIElement 
     {
-        friend UIPanel;
-        friend BindableObject;
+        class ChildrenIterator {
 
-        static bool hasInitialized;
+        };
 
-        static HashTable<String, std::shared_ptr<UIElementTypeInfo>> elementDatas;
-
-        // 識別用のUI名
-        String m_name;
-
-        std::shared_ptr<UIElement> m_parent;
+        UIElement* m_parent;
         Array<UIElement*> m_children;
 
         // 他要素との余白 (右上左下)
-        Optional<Vec4> m_margin;
+        Vec4 m_margin;
 
-        // サイズ設定値 (m_marginより優先)
-        Optional<Vec2> m_size;
+        // サイズ設定値
+        Optional<double> m_width;
+        Optional<double> m_height;
 
-        Optional<HorizontalAlignment> m_horizontalAlignment;
-        Optional<VerticalAlignment> m_verticalAlignment;
-
-        UIPanel& m_panel;
+        HorizontalAlignment m_horizontalAlignment;
+        VerticalAlignment m_verticalAlignment;
 
         String m_className;
 
@@ -51,19 +37,30 @@ namespace s3d::SamlUI
         // 座標関連の数値の更新が必要か。
         bool m_isTransformDirty;
 
-        BindableObject* m_dataContext;
-
-        // UIElementの情報を読み込む
-        static void initialize();
-
-        // 引数のクラス名のUIElementを生成する。
-        static std::shared_ptr<UIElement> create(const String& className, UIPanel& panel, const SpElement& parent);
+        // マウスオーバーされているか(UIの前後関係も考慮)
+        bool m_isMouseOvered;
 
         UIElement(const UIElement&) = delete;
         const UIElement& operator=(const UIElement&) = delete;
 
-        // 描画する。
-        virtual void draw() { }
+#if 0
+
+        // UIElementの情報を読み込む
+        static void initialize();
+
+        static bool hasInitialized;
+
+        static HashTable<String, std::shared_ptr<UIElementTypeInfo>> elementDatas;
+
+        // 識別用のUI名
+        String m_name;
+
+        UIPanel& m_panel;
+
+        BindableObject* m_dataContext;
+
+        // 引数のクラス名のUIElementを生成する。
+        static std::shared_ptr<UIElement> create(const String& className, UIPanel& panel, const SpElement& parent);
 
         // このインスタンスのクラス名を返す。
         String className() {
@@ -80,86 +77,158 @@ namespace s3d::SamlUI
             }
             return m_className;
         }
+#endif
+
+        // このオブジェクトと子を再帰的に描画する。
+        void drawRecursively(bool& mouseOverDisabled);
 
     protected:
 
-        UIElement(UIPanel& panel);
-
-        // 現在BindされているObjectを取得する。(再帰的に親も参照)
-        BindableObject* getCurrentDataContext() const;
-        void setDataContext(BindableObject* data);
-
-        virtual void onMouseOverChanged() {};
-        virtual void onFocusChanged() {};
-
-        // BindされているDataContextのプロパティ変更通知。
-        void onPropertyChangedRecursively(const String& name);
-
-        // BindされているDataContextのプロパティ変更通知。
-        virtual void onPropertyChanged(const String& name);
+        UIElement();
 
         void updateTransform();
 
-        // この要素とすべての子要素のm_isTransformDirtyをtrueにセットする。
-        void setTransformDirtyRecursively();
+        //// この型のプロパティ情報をdatasに追加する。
+        //static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
 
-        // この型のプロパティ情報をdatasに追加する。
-        static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
+        /// <summary>
+        /// 描画する。
+        /// </summary>
+        virtual void onDraw() = 0;
 
     public:
         ~UIElement();
 
+#pragma region Accesor
+
         // UIの前後関係を考慮せず、マウスオーバーされているかを返す。
-        virtual bool intersectsMouse() { return false; }
+        virtual bool intersectsMouse() { return RectF{ getCurrentPosition(), getCurrentSize() }.mouseOver(); }
 
         // マウスオーバーされているか。UIの前後関係も考慮する。
-        bool isMouseOvered() const;
-        bool isFocusing() const;
+        bool isMouseOvered() const { return m_isMouseOvered; }
 
         /// <summary> 親要素 </summary>
-        virtual void setParent(const std::shared_ptr<UIElement>& parent);
-        const std::shared_ptr<UIElement>& getParent() const { return m_parent; }
+        void setParent(UIElement* parent);
+        UIElement* getParent() const { return m_parent; }
 
-        /// <summary>
-        /// このElementが属するPanel
-        /// </summary>
-        UIPanel& getPanel() const { return m_panel; }
-
-        void setProperty(const String& propName, const String& value);
-
-#if false // SamlControllerの辞書に登録する処理が必要なので、プロパティの公開はいったん後回し。
-        const String& getName() const { return m_name; }
-        void setName(const String& name) { m_name = name; }
-#endif
-
-        const Array<UIElement*>& getChildren() const { return m_children; }
+        const Array<UIElement*> getChildren() const { return m_children; }
 
         bool isTransformDirty() const { return m_isTransformDirty; }
 
-        const Optional<Vec4>& getMargin() const { return m_margin; }
-        void setMargin(const Optional<Vec4>& margin);
+        const Vec4& getMargin() const { return m_margin; }
+        /// <summary> 他要素との余白を設定する。どの要素が参照されるかはAlignmentにより変わる。 </summary>
+        void setMargin(const Vec4& margin)
+        {
+            m_margin = margin;
+            setTransformDirtyRecursively();
+        }
 
-        const Optional<Vec2>& getSize() const { return m_size; }
-        void setSize(const Optional<Vec2>& size);
+        /// <summary>
+        /// 幅設定値。空の値の場合、getContentHeight()のサイズをもとに幅を決める。
+        /// </summary>
+        const Optional<double>& getWidth() const { return m_width; }
+        /// <summary>
+        /// 幅設定値。空の値の場合、getContentHeight()のサイズをもとに幅を決める。
+        /// </summary>
+        void setWidth(const Optional<double>& width)
+        {
+            m_width = width;
+            setTransformDirtyRecursively();
+        }
 
-        const Optional<HorizontalAlignment>& getHorizontalAlignment() const { return m_horizontalAlignment; }
-        void setHorizontalAlignment(const Optional<HorizontalAlignment>& alignment);
+        /// <summary>
+        /// 高さ設定値。空の値の場合、getContentHeight()のサイズをもとに高さを決める。
+        /// </summary>
+        const Optional<double>& getHeight() const { return m_width; }
+        /// <summary>
+        /// 高さ設定値。空の値の場合、getContentHeight()のサイズをもとに高さを決める。
+        /// </summary>
+        void setHeight(const Optional<double>& height)
+        {
+            m_height = height;
+            setTransformDirtyRecursively();
+        }
 
-        const Optional<VerticalAlignment>& getVerticalAlignment() const { return m_verticalAlignment; }
-        void setVerticalAlignment(const Optional<VerticalAlignment>& alignment);
+        void setSize(const Vec2& size)
+        {
+            m_width = size.x;
+            m_height = size.y;
+            setTransformDirtyRecursively();
+        }
 
-        const Vec2& getSize() {
+        /// <summary>
+        /// 親要素(もしくはウィンドウ)左上からの座標指定で位置を決める。
+        /// </summary>
+        void setAsRect(const RectF& rect)
+        {
+            m_horizontalAlignment = HorizontalAlignment::Left;
+            m_verticalAlignment = VerticalAlignment::Top;
+            m_width = rect.w;
+            m_height = rect.h;
+            m_margin = Vec4(rect.pos, Vec2::Zero());
+            setTransformDirtyRecursively();
+        }
+
+        /// <summary>
+        /// 横方向の要素位置設定方法
+        /// </summary>
+        HorizontalAlignment getHorizontalAlignment() const { return m_horizontalAlignment; }
+        /// <summary>
+        /// 横方向の要素位置設定方法
+        /// </summary>
+        void setHorizontalAlignment(HorizontalAlignment alignment)
+        {
+            m_horizontalAlignment = alignment;
+            setTransformDirtyRecursively();
+        }
+
+        /// <summary>
+        /// 縦方向の要素位置設定方法
+        /// </summary>
+        VerticalAlignment getVerticalAlignment() const { return m_verticalAlignment; }
+        /// <summary>
+        /// 縦方向の要素位置設定方法
+        /// </summary>
+        void setVerticalAlignment(VerticalAlignment alignment)
+        {
+            m_verticalAlignment = alignment;
+            setTransformDirtyRecursively();
+        }
+
+        /// <summary>
+        /// 親要素を考慮した現在のサイズを取得する。
+        /// </summary>
+        const Vec2& getCurrentSize() {
             if (isTransformDirty()) {
                 updateTransform();
             }
             return m_currentSize;
         }
 
-        const Vec2& getPosition() {
+        /// <summary>
+        /// 親要素を考慮した現在の座標(左上)を取得する。
+        /// </summary>
+        const Vec2& getCurrentPosition() {
             if (isTransformDirty()) {
                 updateTransform();
             }
             return m_currentPos;
         }
+
+        /// <summary>
+        /// 内部要素の大きさ(ボタンの中の文字等)
+        /// </summary>
+        virtual Vec2 getContentSize() const { return Vec2::Zero(); }
+#pragma endregion
+
+        /// <summary>
+        /// このElementと子Elementについて、描画処理およびクリックなどのUpdate処理を再帰的に行う。
+        /// </summary>
+        void draw();
+
+        /// <summary>
+        /// この要素とすべての子要素の座標再計算フラグを立てる。
+        /// </summary>
+        void setTransformDirtyRecursively();
     };
 }

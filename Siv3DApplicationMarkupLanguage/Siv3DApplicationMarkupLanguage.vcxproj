@@ -111,11 +111,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Sources\BindableObject.cpp" />
     <ClCompile Include="Sources\Components\ScrollView.cpp" />
     <ClCompile Include="Sources\Elements\Button.cpp" />
     <ClCompile Include="Sources\Elements\TextBox.cpp" />
-    <ClCompile Include="Sources\UIPanel.cpp" />
     <ClCompile Include="Sources\UIElement.cpp" />
     <ClCompile Include="Sources\UIElementTypeInfo.cpp" />
     <ClCompile Include="Sources\Constants.cpp" />
@@ -246,14 +244,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Headers\BindableObject.h" />
     <ClInclude Include="Headers\Components\ScrollView.h" />
     <ClInclude Include="Headers\Contants.h" />
     <ClInclude Include="Headers\Elements\Button.h" />
     <ClInclude Include="Headers\Elements\ListView.h" />
     <ClInclude Include="Headers\Elements\TextBox.h" />
     <ClInclude Include="Headers\EventListener.h" />
-    <ClInclude Include="Headers\UIPanel.h" />
     <ClInclude Include="Headers\UIElement.h" />
     <ClInclude Include="Headers\UIElementTypeInfo.h" />
     <ClInclude Include="Headers\UITextIndexer.h" />

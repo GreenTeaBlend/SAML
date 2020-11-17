@@ -12,16 +12,12 @@ namespace s3d::SamlUI
 
     protected:
 
-        friend class UIElement;
-        friend class UIPanel;
-        Button(UIPanel& panel);
+        void onDraw() override;
 
     public:
-        static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
+        Button();
 
         const String& getText() const { return m_text; }
         void setText(const String& text) { m_text = text; }
-
-        virtual void draw() override;
     };
 }

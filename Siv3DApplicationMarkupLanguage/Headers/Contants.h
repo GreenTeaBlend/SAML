@@ -16,8 +16,8 @@ namespace s3d::SamlUI
     enum class HorizontalAlignment {
         Left, // 左に寄せる
         Right, // 右に寄せる
-        Center, // 中央に寄せる
-        Stretch // 左右両方に広げる
+        Center, // 中央に寄せる (余白無視、サイズのみ参照)
+        Stretch // 左右両方に広げる (サイズ無視、余白のみ参照)
     };
 
     [[nodiscard]] HorizontalAlignment StringToHorizontalAlignment(const String& str);
@@ -26,8 +26,8 @@ namespace s3d::SamlUI
     enum class VerticalAlignment {
         Top, // 上に寄せる
         Bottom, // 下に寄せる
-        Center, // 中央に寄せる
-        Stretch // 上下両方に広げる
+        Center, // 中央に寄せる (余白無視、サイズのみ参照)
+        Stretch // 上下両方に広げる (サイズ無視、余白のみ参照)
     };
 
     [[nodiscard]] VerticalAlignment StringToVerticalAlignment(const String& str);
