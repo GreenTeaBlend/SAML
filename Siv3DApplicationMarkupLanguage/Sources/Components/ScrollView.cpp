@@ -6,6 +6,8 @@ using namespace SamlUI;
 
 namespace {
     const double WHEEL_SPEED = 20.0;
+    const BlendState INNER_BSTATE = BlendState(true, Blend::SrcAlpha, Blend::InvSrcAlpha, BlendOp::Add, Blend::SrcAlpha, Blend::DestAlpha, BlendOp::Add);
+    const BlendState CLEAR_BSTATE = BlendState(true, Blend::SrcAlpha, Blend::InvSrcAlpha, BlendOp::Add, Blend::SrcAlpha, Blend::DestAlpha, BlendOp::Min);
 }
 
 ScrollView::ScrollView() :
@@ -13,7 +15,8 @@ ScrollView::ScrollView() :
     m_verticalBarThickness(20.0),
     m_horizontalBarState(),
     m_verticalBarState(),
-    m_dragging()
+    m_dragging(),
+    m_rtexture()
 {
 
 }
@@ -30,25 +33,50 @@ void ScrollView::draw(std::function<s3d::SizeF(bool)> drawInner, bool)
     m_verticalBarState.visible = true;
 
     // スクロールバーを除いた、内側パネルの描画領域。
-    RectF frameRect{ rect.pos, rect.w - (m_verticalBarState.visible ? m_verticalBarThickness : 0), rect.h - (m_horizontalBarState.visible ? m_horizontalBarThickness : 0) };
-    bool mouseoverBar = frameRect.mouseOver();
+    Vec2 innerPos{ rect.pos };
+    Size innerFrameSize{ 
+        (int)(rect.w - (m_verticalBarState.visible ? m_verticalBarThickness : 0)), 
+        (int)(rect.h - (m_horizontalBarState.visible ? m_horizontalBarThickness : 0)) 
+    };
+    bool mouseoverBar = RectF{ innerPos, innerFrameSize }.mouseOver();
+
+    if (m_rtexture.isEmpty() || m_rtexture.width() < innerFrameSize.x || m_rtexture.height() < innerFrameSize.y) {
+        m_rtexture = RenderTexture((int)(1.2 * innerFrameSize.x), (int)(1.2 * innerFrameSize.y), Palette::White);
+    }
 
     // ステンシル矩形の設定
-    RasterizerState rstatePre = Graphics2D::GetRasterizerState();
-    RasterizerState rstateScissor = rstatePre;
-    rstateScissor.scissorEnable = true;
-    Graphics2D::Internal::SetRasterizerState(rstateScissor);
-    Graphics2D::SetScissorRect(frameRect);
+    m_rtexture.clear(ColorF(0.0, 0.0));
+    auto rtargetPre = Graphics2D::GetRenderTarget();
+    auto bstatePre = Graphics2D::GetBlendState();
+    Graphics2D::Internal::SetRenderTarget(m_rtexture);
+    Graphics2D::Internal::SetBlendState(INNER_BSTATE);
 
     // 内側を描画
-    SizeF innerSize;
+    SizeF innerSize = Size(10, 10);
     {
-        Transformer2D transformer{ Mat3x2::Translate(getRect().pos + offset()), true };
-        innerSize = drawInner(mouseoverBar);
+        Transformer2D transformer{ Graphics2D::GetLocalTransform().inversed(), true };
+
+        {
+            Transformer2D transformer{ Mat3x2::Translate(offset()), true };
+            innerSize = drawInner(mouseoverBar);
+        }
+
+        // 内側フレームからはみ出た領域を消す。
+        if (m_rtexture.width() > innerFrameSize.x || m_rtexture.height() > innerFrameSize.y) {
+            Graphics2D::Internal::SetBlendState(CLEAR_BSTATE);
+            if (m_rtexture.width() > innerFrameSize.x) {
+                Rect(innerFrameSize.x, 0, m_rtexture.width() - innerFrameSize.x, m_rtexture.height()).draw(ColorF(0.0, 0.0));
+            }
+            if (m_rtexture.height() > innerFrameSize.y) {
+                Rect(0, innerFrameSize.y, m_rtexture.width(), m_rtexture.height() - innerFrameSize.y).draw(ColorF(0.0, 0.0));
+            }
+        }
     }
 
     // ステンシル矩形の設定を戻す
-    Graphics2D::Internal::SetRasterizerState(rstatePre);
+    Graphics2D::Internal::SetRenderTarget(rtargetPre);
+    Graphics2D::Internal::SetBlendState(bstatePre);
+    m_rtexture.draw(innerPos);
 
     // スクロールバーの状態の設定
     if (innerSize.x >= 0.0001 && innerSize.y >= 0.0001)
@@ -56,8 +84,8 @@ void ScrollView::draw(std::function<s3d::SizeF(bool)> drawInner, bool)
         m_horizontalBarState.actualSize = innerSize.x;
         m_verticalBarState.actualSize = innerSize.y;
 
-        m_horizontalBarState.length = innerSize.x > 1.0 ? Min(frameRect.w / innerSize.x, 1.0) : 1.0;
-        m_verticalBarState.length = innerSize.y > 1.0 ? Min(frameRect.h / innerSize.y, 1.0) : 1.0;
+        m_horizontalBarState.length = innerSize.x > 1.0 ? Min(innerFrameSize.x / innerSize.x, 1.0) : 1.0;
+        m_verticalBarState.length = innerSize.y > 1.0 ? Min(innerFrameSize.y / innerSize.y, 1.0) : 1.0;
 
         double wheel = WHEEL_SPEED * Mouse::Wheel();
         m_verticalBarState.pos += wheel / m_verticalBarState.actualSize;

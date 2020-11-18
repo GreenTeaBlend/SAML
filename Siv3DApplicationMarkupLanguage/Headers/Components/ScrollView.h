@@ -19,6 +19,8 @@ namespace s3d::SamlUI
 
     class ScrollView 
     {
+        RenderTexture m_rtexture;
+
         // スクロールバーの幅
         double m_horizontalBarThickness = 10.0;
         double m_verticalBarThickness = 10.0;

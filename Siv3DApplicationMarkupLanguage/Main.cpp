@@ -17,18 +17,19 @@ void Main()
 	// 大きさ 60 のフォントを用意
 	const Font font(18);
 
-	//auto textBox = SamlUI::TextBox();
-	//textBox.setAsRect(RectF(50, 100, 300, 400));
-	auto button = SamlUI::Button();
-	button.setAsRect(RectF(50, 100, 300, 400));
+	auto textBox = SamlUI::TextBox();
+	textBox.setAsRect(RectF(50, 100, 100, 500));
+	//auto button = SamlUI::Button();
+	//button.setAsRect(RectF(2, 2, 300, 400));
 
 	auto listView = SamlUI::ListView();
-	listView.setAsRect(RectF(25, 100, 300, 500));
-	listView.addChild(&button);
+	listView.setAsRect(RectF(25, 100, 300, 400));
+	listView.addChild(&textBox);
 
 	while (System::Update())
 	{
 		// エディタの描画
 		listView.draw();
+		//textBox.draw();
 	}
 }
