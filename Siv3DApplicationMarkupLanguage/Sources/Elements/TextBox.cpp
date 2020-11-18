@@ -143,6 +143,8 @@ SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
 
     Vec2 textTL = TEXT_PADDING.xy();
 
+    Circle(Cursor::Pos(), 20).draw(Palette::Green);
+
     // 1•¶Žš‚¸‚Â•`‰æ
     for (UITextIndexer indexer{ textTL, m_text, m_font }; ; indexer.next())
     {

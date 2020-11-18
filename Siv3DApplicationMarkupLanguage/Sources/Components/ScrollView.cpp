@@ -33,12 +33,11 @@ void ScrollView::draw(std::function<s3d::SizeF(bool)> drawInner, bool)
     m_verticalBarState.visible = true;
 
     // スクロールバーを除いた、内側パネルの描画領域。
-    Vec2 innerPos{ rect.pos };
     Size innerFrameSize{ 
         (int)(rect.w - (m_verticalBarState.visible ? m_verticalBarThickness : 0)), 
         (int)(rect.h - (m_horizontalBarState.visible ? m_horizontalBarThickness : 0)) 
     };
-    bool mouseoverBar = RectF{ innerPos, innerFrameSize }.mouseOver();
+    bool mouseoverBar = RectF{ rect.pos, innerFrameSize }.mouseOver();
 
     if (m_rtexture.isEmpty() || m_rtexture.width() < innerFrameSize.x || m_rtexture.height() < innerFrameSize.y) {
         m_rtexture = RenderTexture((int)(1.2 * innerFrameSize.x), (int)(1.2 * innerFrameSize.y), Palette::White);
@@ -54,10 +53,9 @@ void ScrollView::draw(std::function<s3d::SizeF(bool)> drawInner, bool)
     // 内側を描画
     SizeF innerSize = Size(10, 10);
     {
-        Transformer2D transformer{ Graphics2D::GetLocalTransform().inversed(), true };
-
+        Transformer2D transformer{ Graphics2D::GetLocalTransform().inversed(), false };
         {
-            Transformer2D transformer{ Mat3x2::Translate(offset()), true };
+            Transformer2D transformer{ Mat3x2::Translate(offset()), Mat3x2::Translate(rect.pos + offset()) };
             innerSize = drawInner(mouseoverBar);
         }
 
@@ -76,7 +74,7 @@ void ScrollView::draw(std::function<s3d::SizeF(bool)> drawInner, bool)
     // ステンシル矩形の設定を戻す
     Graphics2D::Internal::SetRenderTarget(rtargetPre);
     Graphics2D::Internal::SetBlendState(bstatePre);
-    m_rtexture.draw(innerPos);
+    m_rtexture.draw(rect.pos.asPoint());
 
     // スクロールバーの状態の設定
     if (innerSize.x >= 0.0001 && innerSize.y >= 0.0001)
