@@ -45,7 +45,8 @@ namespace s3d::SamlUI
 
         // カーソル点滅タイマー
         Stopwatch m_cursorStopwatch;
-
+        
+        bool m_isMouseOvered;
         bool m_isFocused;
 
         // 文字編集の更新処理
@@ -63,11 +64,6 @@ namespace s3d::SamlUI
 
     protected:
 
-        /// <summary>
-        /// 描画する。
-        /// </summary>
-        void onDraw();
-
     public:
 
         TextBox();
@@ -83,5 +79,10 @@ namespace s3d::SamlUI
 
         // カーソルの位置をセットする。第二引数がtrueの場合、カーソルが表示位置に収まるようスクロールが行われます。
         void setCursorPos(size_t pos, bool moveView);
+
+        /// <summary>
+        /// 描画する。
+        /// </summary>
+        bool draw(bool mouseOverEnable = true) override;
     };
 }

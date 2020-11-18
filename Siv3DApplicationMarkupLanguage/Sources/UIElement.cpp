@@ -1,5 +1,6 @@
 #include "UIElement.h"
 #include "UIElementTypeInfo.h"
+#include "Elements/Panel.h"
 #include "Elements/Button.h"
 #include "Elements/TextBox.h"
 
@@ -8,10 +9,10 @@ using namespace SamlUI;
 
 UIElement::UIElement():
     m_parent(),
-    m_isMouseOvered(),
     m_margin(),
     m_width(),
     m_height(),
+    m_onTransformDirtyEvents(),
     m_currentPos(),
     m_currentSize(),
     m_horizontalAlignment(HorizontalAlignment::Stretch),
@@ -22,72 +23,30 @@ UIElement::UIElement():
 
 UIElement::~UIElement() 
 {
-    setParent(nullptr);
-
-    if (m_children.size() != 0) {
-        auto children = Array<UIElement*>(m_children);
-        for (auto* child : children) {
-            child->setParent(nullptr);
-        }
+    if (m_parent != nullptr) {
+        m_parent->removeChild(this);
     }
 }
 
-void UIElement::setParent(UIElement* parent)
+void UIElement::setTransformDirty()
 {
-    if (parent != m_parent) 
-    {
-        // 前のParentのChildrenから自分を削除する。
-        if (m_parent != nullptr) 
-        {
-            int deleteCount = 0;
-            for (auto it = m_parent->m_children.begin(); it != m_parent->m_children.end(); ) {
-                if (*it == this) {
-                    it = m_parent->m_children.erase(it);
-                    ++deleteCount;
-                }
-                else {
-                    ++it;
-                }
-            }
-
-            if (deleteCount == 0) {
-                throw Error(U"引数のChildが見つかりませんでした。 @UIElement::setParent");
-            }
-            else if (deleteCount >= 2) {
-                throw Error(U"2つ以上のChildrenがヒットしました @UIElement::setParent");
-            }
-        }
-
-        m_parent = parent;
-
-        // 新しいparentのChildrenに自分を削除する。
-        if (m_parent != nullptr)
-        {
-            m_parent->m_children.push_back(this);
-        }
-
-        setTransformDirtyRecursively();
-    }
-}
-
-void UIElement::setTransformDirtyRecursively()
-{
-    if (!m_isTransformDirty) 
-    {
-        m_isTransformDirty = true;
-
-        // TransformChangedEventなど
+    if (m_isTransformDirty) {
+        return;
     }
 
-    for (auto child : getChildren()) {
-        child->setTransformDirtyRecursively();
+    m_isTransformDirty = true;
+
+    Panel* panel = dynamic_cast<Panel*>(this);
+    if (panel != nullptr) {
+        for (auto& child : panel->getChildren()) {
+            child->setTransformDirty();
+        }
     }
 }
 
 void UIElement::updateTransform()
 {
-    Vec2 parentPos = m_parent != nullptr ? m_parent->getCurrentPosition() : Vec2::Zero();
-    Vec2 parentSize = m_parent != nullptr ? m_parent->getCurrentSize() : Window::ClientSize();
+    RectF parentRect = m_parent != nullptr ? m_parent->getInnerRect() : RectF{ 0, 0, Window::ClientSize() };
 
     //--------------------------------------------------
     // 幅を決定
@@ -99,11 +58,11 @@ void UIElement::updateTransform()
         if (m_width.has_value())
             m_currentSize.x = m_width.value();
         else
-            m_currentSize.x = getContentSize().x;
+            m_currentSize.x = defaultSize().x;
         break;
 
     case HorizontalAlignment::Stretch:
-        m_currentSize.x = parentSize.x - m_margin.x - m_margin.z;
+        m_currentSize.x = parentRect.w - m_margin.x - m_margin.z;
         break;
 
     default:
@@ -121,11 +80,11 @@ void UIElement::updateTransform()
         if (m_height.has_value())
             m_currentSize.y = m_height.value();
         else
-            m_currentSize.y = getContentSize().y;
+            m_currentSize.y = defaultSize().y;
         break;
 
     case VerticalAlignment::Stretch:
-        m_currentSize.y = parentSize.y - m_margin.y - m_margin.w;
+        m_currentSize.y = parentRect.h - m_margin.y - m_margin.w;
         break;
 
     default:
@@ -138,14 +97,14 @@ void UIElement::updateTransform()
     switch (m_horizontalAlignment)
     {
     case s3d::SamlUI::HorizontalAlignment::Right:
-        m_currentPos.x = parentPos.x + parentSize.x - m_margin.z - m_currentSize.x;
+        m_currentPos.x = parentRect.x + parentRect.w - m_margin.z - m_currentSize.x;
         break;
     case s3d::SamlUI::HorizontalAlignment::Center:
-        m_currentPos.x = parentPos.x + parentSize.x / 2 - m_currentSize.x / 2;
+        m_currentPos.x = parentRect.x + parentRect.w / 2 - m_currentSize.x / 2;
         break;
     case s3d::SamlUI::HorizontalAlignment::Left:
     case s3d::SamlUI::HorizontalAlignment::Stretch:
-        m_currentPos.x = parentPos.x + m_margin.x;
+        m_currentPos.x = parentRect.x + m_margin.x;
         break;
     default:
         break;
@@ -156,14 +115,14 @@ void UIElement::updateTransform()
     switch (m_verticalAlignment)
     {
     case s3d::SamlUI::VerticalAlignment::Bottom:
-        m_currentPos.y = parentPos.y + parentSize.y - m_margin.w - m_currentSize.y;
+        m_currentPos.y = parentRect.y + parentRect.h - m_margin.w - m_currentSize.y;
         break;
     case s3d::SamlUI::VerticalAlignment::Center:
-        m_currentPos.y = parentPos.y + parentSize.y / 2 - m_currentSize.y / 2;
+        m_currentPos.y = parentRect.y + parentRect.h / 2 - m_currentSize.y / 2;
         break;
     case s3d::SamlUI::VerticalAlignment::Top:
     case s3d::SamlUI::VerticalAlignment::Stretch:
-        m_currentPos.y = parentPos.y + m_margin.y;
+        m_currentPos.y = parentRect.y + m_margin.y;
         break;
     default:
         break;
@@ -171,24 +130,3 @@ void UIElement::updateTransform()
 
     m_isTransformDirty = false;
 }
-
-void UIElement::draw()
-{
-    bool mouseOverDisabled = false;
-
-    drawRecursively(mouseOverDisabled);
-}
-
-void UIElement::drawRecursively(bool& mouseOverDisabled)
-{
-    m_isMouseOvered = !mouseOverDisabled && intersectsMouse();
-    if (m_isMouseOvered) {
-        mouseOverDisabled = true;
-    }
-
-    onDraw();
-
-    for (auto* child : m_children) {
-        drawRecursively(mouseOverDisabled);
-    }
-};

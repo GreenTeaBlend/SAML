@@ -113,6 +113,8 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Sources\Components\ScrollView.cpp" />
     <ClCompile Include="Sources\Elements\Button.cpp" />
+    <ClCompile Include="Sources\Elements\ListView.cpp" />
+    <ClCompile Include="Sources\Elements\Panel.cpp" />
     <ClCompile Include="Sources\Elements\TextBox.cpp" />
     <ClCompile Include="Sources\UIElement.cpp" />
     <ClCompile Include="Sources\UIElementTypeInfo.cpp" />
@@ -248,6 +250,7 @@
     <ClInclude Include="Headers\Contants.h" />
     <ClInclude Include="Headers\Elements\Button.h" />
     <ClInclude Include="Headers\Elements\ListView.h" />
+    <ClInclude Include="Headers\Elements\Panel.h" />
     <ClInclude Include="Headers\Elements\TextBox.h" />
     <ClInclude Include="Headers\EventListener.h" />
     <ClInclude Include="Headers\UIElement.h" />

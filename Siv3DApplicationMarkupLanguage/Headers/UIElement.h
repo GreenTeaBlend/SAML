@@ -4,17 +4,20 @@
 
 namespace s3d::SamlUI
 {
+    class Panel;
+
     /// <summary>
     /// UI要素の基底クラス
     /// </summary>
     class UIElement 
     {
+        friend class Panel;
+
         class ChildrenIterator {
 
         };
 
-        UIElement* m_parent;
-        Array<UIElement*> m_children;
+        Panel* m_parent;
 
         // 他要素との余白 (右上左下)
         Vec4 m_margin;
@@ -37,50 +40,10 @@ namespace s3d::SamlUI
         // 座標関連の数値の更新が必要か。
         bool m_isTransformDirty;
 
-        // マウスオーバーされているか(UIの前後関係も考慮)
-        bool m_isMouseOvered;
+        std::vector<std::shared_ptr<std::function<void()>>> m_onTransformDirtyEvents;
 
         UIElement(const UIElement&) = delete;
         const UIElement& operator=(const UIElement&) = delete;
-
-#if 0
-
-        // UIElementの情報を読み込む
-        static void initialize();
-
-        static bool hasInitialized;
-
-        static HashTable<String, std::shared_ptr<UIElementTypeInfo>> elementDatas;
-
-        // 識別用のUI名
-        String m_name;
-
-        UIPanel& m_panel;
-
-        BindableObject* m_dataContext;
-
-        // 引数のクラス名のUIElementを生成する。
-        static std::shared_ptr<UIElement> create(const String& className, UIPanel& panel, const SpElement& parent);
-
-        // このインスタンスのクラス名を返す。
-        String className() {
-            if (m_className.length() == 0) {
-                // "class Saml::UIElement::Button" のような文字列が取得されるので、名前空間も除いた純粋なクラス名に変換する。
-                m_className = Unicode::Widen(typeid(*this).name());
-                auto colonIndex = m_className.lastIndexOf(U":");
-                if (colonIndex != String::npos) {
-                    m_className = m_className.substr(colonIndex + 1); // コロンより後を取得
-                }
-                else {
-                    m_className = m_className.substr(6); // 先頭の"class "より後を取得
-                }
-            }
-            return m_className;
-        }
-#endif
-
-        // このオブジェクトと子を再帰的に描画する。
-        void drawRecursively(bool& mouseOverDisabled);
 
     protected:
 
@@ -88,30 +51,18 @@ namespace s3d::SamlUI
 
         void updateTransform();
 
-        //// この型のプロパティ情報をdatasに追加する。
-        //static void enumratePropertyData(HashTable<String, PropertySetter>* datas);
-
         /// <summary>
-        /// 描画する。
+        /// WidthやHeightが設定されておらず、さらにMarginとAlignmentから要素のサイズを決定できない時に設定する大きさ。
         /// </summary>
-        virtual void onDraw() = 0;
+        virtual Vec2 defaultSize() { return Vec2{ 10.0 , 10.0 }; }
 
     public:
-        ~UIElement();
+        virtual ~UIElement();
 
 #pragma region Accesor
 
-        // UIの前後関係を考慮せず、マウスオーバーされているかを返す。
-        virtual bool intersectsMouse() { return RectF{ getCurrentPosition(), getCurrentSize() }.mouseOver(); }
-
-        // マウスオーバーされているか。UIの前後関係も考慮する。
-        bool isMouseOvered() const { return m_isMouseOvered; }
-
         /// <summary> 親要素 </summary>
-        void setParent(UIElement* parent);
-        UIElement* getParent() const { return m_parent; }
-
-        const Array<UIElement*> getChildren() const { return m_children; }
+        Panel* getParent() const { return m_parent; }
 
         bool isTransformDirty() const { return m_isTransformDirty; }
 
@@ -120,7 +71,7 @@ namespace s3d::SamlUI
         void setMargin(const Vec4& margin)
         {
             m_margin = margin;
-            setTransformDirtyRecursively();
+            setTransformDirty();
         }
 
         /// <summary>
@@ -133,7 +84,7 @@ namespace s3d::SamlUI
         void setWidth(const Optional<double>& width)
         {
             m_width = width;
-            setTransformDirtyRecursively();
+            setTransformDirty();
         }
 
         /// <summary>
@@ -146,14 +97,14 @@ namespace s3d::SamlUI
         void setHeight(const Optional<double>& height)
         {
             m_height = height;
-            setTransformDirtyRecursively();
+            setTransformDirty();
         }
 
         void setSize(const Vec2& size)
         {
             m_width = size.x;
             m_height = size.y;
-            setTransformDirtyRecursively();
+            setTransformDirty();
         }
 
         /// <summary>
@@ -166,7 +117,7 @@ namespace s3d::SamlUI
             m_width = rect.w;
             m_height = rect.h;
             m_margin = Vec4(rect.pos, Vec2::Zero());
-            setTransformDirtyRecursively();
+            setTransformDirty();
         }
 
         /// <summary>
@@ -179,7 +130,7 @@ namespace s3d::SamlUI
         void setHorizontalAlignment(HorizontalAlignment alignment)
         {
             m_horizontalAlignment = alignment;
-            setTransformDirtyRecursively();
+            setTransformDirty();
         }
 
         /// <summary>
@@ -192,7 +143,7 @@ namespace s3d::SamlUI
         void setVerticalAlignment(VerticalAlignment alignment)
         {
             m_verticalAlignment = alignment;
-            setTransformDirtyRecursively();
+            setTransformDirty();
         }
 
         /// <summary>
@@ -214,21 +165,37 @@ namespace s3d::SamlUI
             }
             return m_currentPos;
         }
-
-        /// <summary>
-        /// 内部要素の大きさ(ボタンの中の文字等)
-        /// </summary>
-        virtual Vec2 getContentSize() const { return Vec2::Zero(); }
 #pragma endregion
 
         /// <summary>
         /// このElementと子Elementについて、描画処理およびクリックなどのUpdate処理を再帰的に行う。
         /// </summary>
-        void draw();
+        /// <param name="mouseOverEnable">falseの場合、内部でマウスオーバーに依存する処理が行われなくなる。</param>
+        /// <return>マウスオーバー判定が消費されたらtrue。これ以降の要素はマウス関連の処理がスキップされる。</return>
+        virtual bool draw(bool mouseOverEnable = true) = 0;
 
         /// <summary>
-        /// この要素とすべての子要素の座標再計算フラグを立てる。
+        /// この要素(および、存在するならすべての子要素)の座標再計算フラグを立てる。
         /// </summary>
-        void setTransformDirtyRecursively();
+        void setTransformDirty();
+
+        /// <summary>
+        /// 座標再計算が必要になったときに呼ばれるイベントを登録する。
+        /// </summary>
+        void registerTransformDirtyEvent(const std::shared_ptr<std::function<void()>>& func) {
+            m_onTransformDirtyEvents.push_back(func);
+        }
+
+        /// <summary>
+        /// 座標再計算が必要になったときに呼ばれるイベントを解除する。
+        /// </summary>
+        void removeTransformDirtyEvent(const std::shared_ptr<std::function<void()>>& func) {
+            for (auto it = m_onTransformDirtyEvents.begin(); it != m_onTransformDirtyEvents.end(); it++) {
+                if ((*it) == func) {
+                    m_onTransformDirtyEvents.erase(it);
+                    return;
+                }
+            }
+        }
     };
 }

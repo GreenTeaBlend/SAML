@@ -91,6 +91,8 @@ SamlUI::TextBox::TextBox() :
     m_font(20),
     m_text(U""),
     m_lines(),
+    m_isMouseOvered(),
+    m_isFocused(),
     m_cursorPos(3),
     m_scrollView(new ScrollView()),
     m_selectRange(),
@@ -100,8 +102,10 @@ SamlUI::TextBox::TextBox() :
     m_keyPressStopwatch.start();
 }
 
-void SamlUI::TextBox::onDraw()
+bool SamlUI::TextBox::draw(bool mouseOverEnable)
 {
+    m_isMouseOvered = mouseOverEnable && RectF{ getCurrentPosition(), getCurrentSize() }.mouseOver();
+
     // 文字入力
     updateText();
 
@@ -118,7 +122,7 @@ void SamlUI::TextBox::onDraw()
     // スクロールバーと内側の描画
     m_scrollView->draw([&](bool isMouseOvered) {
         return drawInner(isMouseOvered);
-        }, isMouseOvered());
+        }, m_isMouseOvered);
 
     // 枠線の描画
     RectF rect{ getCurrentPosition(), getCurrentSize() };
@@ -129,7 +133,7 @@ void SamlUI::TextBox::onDraw()
         rect.drawFrame(1, 0, Palette::Gray);
     }
 
-    return;
+    return m_isMouseOvered;
 }
 
 SizeF SamlUI::TextBox::drawInner(bool isMouseOvered)
@@ -420,7 +424,7 @@ void SamlUI::TextBox::updateMouse()
 
         // テキストボックスでクリック、もしくはドラッグ開始した → 範囲選択開始
         if (MouseL.down()) {
-            if (isMouseOvered())
+            if (m_isMouseOvered)
             {
                 m_selectRange = IndexRange();
                 m_selectRange->start = index;

@@ -9,8 +9,10 @@ Button::Button() :
 {
 }
 
-void Button::onDraw()
+bool Button::draw(bool mouseOverEnable)
 {
+	m_isMouseOvered = mouseOverEnable && RectF{ getCurrentPosition(), getCurrentSize() }.mouseOver();
+
 	//const int32 labelWidth = font(label).region().w;
 	//const double width = _width.value_or(labelWidth + 40);
 
@@ -48,5 +50,5 @@ void Button::onDraw()
 
     //m_font(m_text).drawAt(rect.center(), Palette::Black);
 
-	return;
+	return m_isMouseOvered;
 }

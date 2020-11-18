@@ -10,14 +10,17 @@ namespace s3d::SamlUI
 
         Font m_font;
 
-    protected:
-
-        void onDraw() override;
+        bool m_isMouseOvered;
 
     public:
         Button();
 
         const String& getText() const { return m_text; }
         void setText(const String& text) { m_text = text; }
+
+        /// <summary>
+        /// ï`âÊÇ∑ÇÈÅB
+        /// </summary>
+        bool draw(bool mouseOverEnable = true) override;
     };
 }
